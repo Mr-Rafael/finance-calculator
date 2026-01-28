@@ -16,6 +16,11 @@ func handlerHealthZ(writer http.ResponseWriter, request *http.Request) {
 	writer.Write([]byte("OK"))
 }
 
+func respondWithErrorCode(writer http.ResponseWriter, logMessage string, statusCode int) {
+	fmt.Printf("[Error]: %v\n", logMessage)
+	writer.WriteHeader(statusCode)
+}
+
 func respondWithError(writer http.ResponseWriter, logMessage string, apiErrorMessage string, statusCode int) {
 	fmt.Printf("[Error]: %v\n", logMessage)
 	writer.Header().Set("Content-Type", "application/json")

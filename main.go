@@ -21,6 +21,7 @@ func main() {
 	mux.Handle("/app/", config.middlewareMetricsInc(http.StripPrefix("/app/", http.FileServer(http.Dir("./files")))))
 	mux.HandleFunc("GET /api/healthz", handlerHealthZ)
 	mux.HandleFunc("GET /admin/metrics", config.handlerMetrics)
+	mux.HandleFunc("GET /savings/calculate", config.handlerCalculateGet)
 
 	server := &http.Server{
 		Addr:    port,
