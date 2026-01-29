@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ type validateResponseErrorParams struct {
 	Error string `json:"error"`
 }
 
-func handlerHealthZ(writer http.ResponseWriter, request *http.Request) {
+func HandlerHealthZ(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusOK)
 	writer.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	writer.Write([]byte("OK"))

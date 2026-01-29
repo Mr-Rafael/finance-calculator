@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -13,7 +13,7 @@ type SavingsRequestParams struct {
 	StartDate           string `json:"start_date"`
 }
 
-type SavingsPlan struct {
+type SavingsResponse struct {
 	Plan []SavingsStatus `json:"plan"`
 }
 
@@ -24,12 +24,13 @@ type SavingsStatus struct {
 	Increase     int `json:"increase"`
 }
 
-func (c *apiConfig) handlerCalculateGet(writer http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) HandlerCalculateGet(writer http.ResponseWriter, request *http.Request) {
 	decoder := json.NewDecoder(request.Body)
 	reqParams := SavingsRequestParams{}
 	err := decoder.Decode(&reqParams)
 	if err != nil {
 		respondWithErrorCode(writer, "received bad savings request", http.StatusBadRequest)
 	}
+
 	respondWithJSON(writer, reqParams, http.StatusOK)
 }

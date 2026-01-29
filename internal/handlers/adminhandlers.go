@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"fmt"
@@ -14,9 +14,9 @@ var metricsTemplate = template.Must(template.New("page").Parse(`<html>
 </html>
 `))
 
-func (cfg *apiConfig) handlerMetrics(writer http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) HandlerMetrics(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusOK)
 	writer.Header().Set("Content-Type", "text/html; charset=utf-8")
-	dataMap := map[string]string{"Count": fmt.Sprint(cfg.fileserverHits.Load())}
+	dataMap := map[string]string{"Count": fmt.Sprint(cfg.FileserverHits.Load())}
 	metricsTemplate.Execute(writer, dataMap)
 }
