@@ -1,7 +1,6 @@
 package calculator
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/Mr-Rafael/finance-calculator/internal/models"
@@ -9,29 +8,30 @@ import (
 )
 
 type SavingsInfo struct {
-	Capital      decimal.Decimal
-	InterestRate decimal.Decimal
-	Contribution decimal.Decimal
-	Duration     decimal.Decimal
-	StartDate    time.Time
+	Capital             decimal.Decimal
+	YearlyInterestRate  decimal.Decimal
+	MonthlyContribution decimal.Decimal
+	DurationYears       decimal.Decimal
+	TaxRate             decimal.Decimal
+	StartDate           time.Time
 }
 
 func CalculateSavingsPlan(info SavingsInfo) models.SavingsPlan {
 	plan := models.SavingsPlan{}
+	monthlyInterestRate := info.YearlyInterestRate.Div(decimal.NewFromInt(12))
+	durationMonths := info.DurationYears.Mul(decimal.NewFromInt(12))
 
 	currentCapital := info.Capital
-	for i := 0; i < int(info.Duration.IntPart()); i++ {
-		fmt.Printf("\nCalculating year %v:\n", i)
-		fmt.Printf("Capital is %v\n", currentCapital)
-		fmt.Printf("Interest is %v\n", info.InterestRate)
-		fmt.Printf("Product is is %v\n", currentCapital.Mul(info.InterestRate))
-
-		currentInterest := currentCapital.Mul(info.InterestRate)
-		currentCapital = currentCapital.Add(currentInterest).Add(info.Contribution)
+	for i := 0; i < int(durationMonths.IntPart()); i++ {
+		currentInterest := currentCapital.Mul(monthlyInterestRate)
+		currentTax := currentInterest.Mul(info.TaxRate)
+		currentCapital = currentCapital.Add(currentInterest).Add(info.MonthlyContribution).Sub(currentTax)
 		currentStatus := models.SavingsStatus{
+			Date:         info.StartDate.AddDate(0, i, 0),
 			Interest:     int(currentInterest.IntPart()),
-			Contribution: int(info.Contribution.IntPart()),
-			Increase:     int(currentInterest.IntPart()) + int(info.Contribution.IntPart()),
+			Tax:          int(currentTax.IntPart()),
+			Contribution: int(info.MonthlyContribution.IntPart()),
+			Increase:     int(currentInterest.IntPart()) + int(info.MonthlyContribution.IntPart()),
 			Capital:      int(currentCapital.IntPart()),
 		}
 		plan.Plan = append(plan.Plan, currentStatus)

@@ -7,15 +7,17 @@ import (
 	"time"
 
 	"github.com/Mr-Rafael/finance-calculator/internal/calculator"
+	"github.com/go-playground/validator"
 	"github.com/shopspring/decimal"
 )
 
 type SavingsRequestParams struct {
-	StartingCapital int    `json:"starting_capital"`
-	InterestRate    string `json:"interest_rate"`
-	Contribution    int    `json:"contribution"`
-	Duration        int    `json:"duration"`
-	StartDate       string `json:"start_date"`
+	StartingCapital     int    `json:"startingCapital" validate:"required"`
+	YearlyInterestRate  string `json:"yearlyInterestRate" validate:"required"`
+	MonthlyContribution int    `json:"monthlyContribution" validate:"required"`
+	DurationYears       int    `json:"durationYears" validate:"required"`
+	TaxRate             string `json:"taxRate"`
+	StartDate           string `json:"startDate" validate:"required"`
 }
 
 func (cfg *ApiConfig) HandlerCalculateGet(writer http.ResponseWriter, request *http.Request) {
@@ -24,11 +26,19 @@ func (cfg *ApiConfig) HandlerCalculateGet(writer http.ResponseWriter, request *h
 	err := decoder.Decode(&reqParams)
 	if err != nil {
 		respondWithErrorCode(writer, "received bad savings request", http.StatusBadRequest)
+		return
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(reqParams); err != nil {
+		respondWithError(writer, err.Error(), fmt.Sprintf("missing required fields: %v", err), http.StatusBadRequest)
+		return
 	}
 
 	calculatorParams, err := getSavingsInfo(reqParams)
 	if err != nil {
 		respondWithError(writer, err.Error(), fmt.Sprintf("Parse error: %v", err), http.StatusBadRequest)
+		return
 	}
 
 	response := calculator.CalculateSavingsPlan(calculatorParams)
@@ -37,9 +47,17 @@ func (cfg *ApiConfig) HandlerCalculateGet(writer http.ResponseWriter, request *h
 }
 
 func getSavingsInfo(params SavingsRequestParams) (calculator.SavingsInfo, error) {
-	interestRate, err := decimal.NewFromString(params.InterestRate)
+	interestRate, err := decimal.NewFromString(params.YearlyInterestRate)
 	if err != nil {
-		return calculator.SavingsInfo{}, fmt.Errorf("failed to parse amount %v to decimal: %v", params.InterestRate, err)
+		return calculator.SavingsInfo{}, fmt.Errorf("failed to parse amount %v to decimal: %v", params.YearlyInterestRate, err)
+	}
+
+	taxRate := decimal.NewFromInt(0)
+	if len(params.TaxRate) > 0 {
+		taxRate, err = decimal.NewFromString(params.TaxRate)
+		if err != nil {
+			return calculator.SavingsInfo{}, fmt.Errorf("failed to parse amount %v to decimal: %v", params.TaxRate, err)
+		}
 	}
 
 	layout := "2006-01-02"
@@ -49,10 +67,11 @@ func getSavingsInfo(params SavingsRequestParams) (calculator.SavingsInfo, error)
 	}
 
 	return calculator.SavingsInfo{
-		Capital:      decimal.NewFromInt(int64(params.StartingCapital)),
-		InterestRate: interestRate.Div(decimal.NewFromInt(100)),
-		Contribution: decimal.NewFromInt(int64(params.Contribution)),
-		Duration:     decimal.NewFromInt(int64(params.Duration)),
-		StartDate:    startDate,
+		Capital:             decimal.NewFromInt(int64(params.StartingCapital)),
+		YearlyInterestRate:  interestRate.Div(decimal.NewFromInt(100)),
+		MonthlyContribution: decimal.NewFromInt(int64(params.MonthlyContribution)),
+		DurationYears:       decimal.NewFromInt(int64(params.DurationYears)),
+		TaxRate:             taxRate.Div(decimal.NewFromInt(100)),
+		StartDate:           startDate,
 	}, nil
 }
