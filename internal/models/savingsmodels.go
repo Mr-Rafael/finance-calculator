@@ -3,7 +3,10 @@ package models
 import "time"
 
 type SavingsPlan struct {
-	Plan []SavingsStatus `json:"plan"`
+	TotalPassiveEarnings int             `json:"totalEarnings"`
+	RateOfReturn         string          `json:"rateOfReturn"`
+	InflationAdjustedROR string          `json:"inflationAdjustedROR"`
+	Plan                 []SavingsStatus `json:"plan"`
 }
 
 type SavingsStatus struct {

@@ -17,6 +17,7 @@ type SavingsRequestParams struct {
 	MonthlyContribution int    `json:"monthlyContribution" validate:"required"`
 	DurationYears       int    `json:"durationYears" validate:"required"`
 	TaxRate             string `json:"taxRate"`
+	YearlyInflationRate string `json:"yearlyInflationRate"`
 	StartDate           string `json:"startDate" validate:"required"`
 }
 
@@ -60,6 +61,14 @@ func getSavingsInfo(params SavingsRequestParams) (calculator.SavingsInfo, error)
 		}
 	}
 
+	inflationRate := decimal.NewFromInt(0)
+	if len(params.YearlyInflationRate) > 0 {
+		inflationRate, err = decimal.NewFromString(params.YearlyInflationRate)
+		if err != nil {
+			return calculator.SavingsInfo{}, fmt.Errorf("failed to parse amount %v to decimal: %v", params.YearlyInflationRate, err)
+		}
+	}
+
 	layout := "2006-01-02"
 	startDate, err := time.Parse(layout, params.StartDate)
 	if err != nil {
@@ -72,6 +81,7 @@ func getSavingsInfo(params SavingsRequestParams) (calculator.SavingsInfo, error)
 		MonthlyContribution: decimal.NewFromInt(int64(params.MonthlyContribution)),
 		DurationYears:       decimal.NewFromInt(int64(params.DurationYears)),
 		TaxRate:             taxRate.Div(decimal.NewFromInt(100)),
+		InflationRate:       inflationRate.Div(decimal.NewFromInt(100)),
 		StartDate:           startDate,
 	}, nil
 }
