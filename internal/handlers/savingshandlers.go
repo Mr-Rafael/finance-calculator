@@ -42,16 +42,13 @@ func (cfg *ApiConfig) HandlerCalculateGet(writer http.ResponseWriter, request *h
 		return
 	}
 
-	response := calculator.CalculateSavingsPlan(calculatorParams)
+	response, err := calculator.CalculateSavingsPlan(calculatorParams)
 
 	respondWithJSON(writer, response, http.StatusOK)
 }
 
 func getSavingsInfo(params SavingsRequestParams) (calculator.SavingsInfo, error) {
-	interestRate, err := decimal.NewFromString(params.YearlyInterestRate)
-	if err != nil {
-		return calculator.SavingsInfo{}, fmt.Errorf("failed to parse amount %v to decimal: %v", params.YearlyInterestRate, err)
-	}
+	var err error
 
 	taxRate := decimal.NewFromInt(0)
 	if len(params.TaxRate) > 0 {
@@ -76,8 +73,8 @@ func getSavingsInfo(params SavingsRequestParams) (calculator.SavingsInfo, error)
 	}
 
 	return calculator.SavingsInfo{
-		Capital:             decimal.NewFromInt(int64(params.StartingCapital)),
-		YearlyInterestRate:  interestRate.Div(decimal.NewFromInt(100)),
+		Capital:             params.StartingCapital,
+		YearlyInterestRate:  params.YearlyInterestRate,
 		MonthlyContribution: decimal.NewFromInt(int64(params.MonthlyContribution)),
 		DurationYears:       decimal.NewFromInt(int64(params.DurationYears)),
 		TaxRate:             taxRate.Div(decimal.NewFromInt(100)),

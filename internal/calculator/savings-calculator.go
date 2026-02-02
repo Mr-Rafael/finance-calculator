@@ -1,6 +1,7 @@
 package calculator
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/Mr-Rafael/finance-calculator/internal/models"
@@ -8,8 +9,8 @@ import (
 )
 
 type SavingsInfo struct {
-	Capital             decimal.Decimal
-	YearlyInterestRate  decimal.Decimal
+	Capital             int
+	YearlyInterestRate  string
 	MonthlyContribution decimal.Decimal
 	DurationYears       decimal.Decimal
 	TaxRate             decimal.Decimal
@@ -17,12 +18,17 @@ type SavingsInfo struct {
 	StartDate           time.Time
 }
 
-func CalculateSavingsPlan(info SavingsInfo) models.SavingsPlan {
+func CalculateSavingsPlan(info SavingsInfo) (models.SavingsPlan, error) {
 	plan := models.SavingsPlan{}
-	monthlyInterestRate := info.YearlyInterestRate.Div(decimal.NewFromInt(12))
+
+	startingCapital := decimal.NewFromInt(int64(info.Capital))
+	currentCapital := startingCapital
+	monthlyInterestRate, err := getMonthlyInterestMultiplier(info.YearlyInterestRate)
+	if err != nil {
+		return models.SavingsPlan{}, fmt.Errorf("failed to parse interest rate: %v", err)
+	}
 	durationMonths := info.DurationYears.Mul(decimal.NewFromInt(12))
 
-	currentCapital := info.Capital
 	totalEarnings := decimal.NewFromInt(0)
 	for i := 0; i < int(durationMonths.IntPart()); i++ {
 		currentInterest := currentCapital.Mul(monthlyInterestRate)
@@ -39,7 +45,7 @@ func CalculateSavingsPlan(info SavingsInfo) models.SavingsPlan {
 		}
 		plan.Plan = append(plan.Plan, currentStatus)
 	}
-	rateOfReturn := currentCapital.Div(info.Capital).Mul(decimal.NewFromInt(100))
+	rateOfReturn := currentCapital.Div(startingCapital).Mul(decimal.NewFromInt(100))
 
 	plan.TotalPassiveEarnings = int(totalEarnings.IntPart())
 	plan.RateOfReturn = rateOfReturn.String()
@@ -48,5 +54,5 @@ func CalculateSavingsPlan(info SavingsInfo) models.SavingsPlan {
 		plan.InflationAdjustedROR = rateOfReturn.Div(inflationMultiplier).String()
 	}
 
-	return plan
+	return plan, nil
 }
