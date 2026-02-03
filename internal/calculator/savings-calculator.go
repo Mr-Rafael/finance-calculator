@@ -8,51 +8,47 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type SavingsInfo struct {
-	Capital             int
-	YearlyInterestRate  string
-	MonthlyContribution decimal.Decimal
-	DurationYears       decimal.Decimal
-	TaxRate             decimal.Decimal
-	InflationRate       decimal.Decimal
-	StartDate           time.Time
-}
-
-func CalculateSavingsPlan(info SavingsInfo) (models.SavingsPlan, error) {
+func CalculateSavingsPlan(info models.SavingsRequestParams) (models.SavingsPlan, error) {
 	plan := models.SavingsPlan{}
 
-	startingCapital := decimal.NewFromInt(int64(info.Capital))
+	startingCapital := decimal.NewFromInt(int64(info.StartingCapital))
 	currentCapital := startingCapital
 	monthlyInterestRate, err := getMonthlyInterestMultiplier(info.YearlyInterestRate)
 	if err != nil {
 		return models.SavingsPlan{}, fmt.Errorf("failed to parse interest rate: %v", err)
 	}
-	durationMonths := info.DurationYears.Mul(decimal.NewFromInt(12))
+	durationYears := decimal.NewFromInt(int64(info.DurationYears))
+	durationMonths := durationYears.Mul(decimal.NewFromInt(12))
+	monthlyContribution := decimal.NewFromInt(int64(info.MonthlyContribution))
+	tax := getTaxMultiplier(info.TaxRate)
+	inflation := getYearlyInflationMultiplier(info.YearlyInflationRate)
+	startDate, err := time.Parse("2006-01-02", info.StartDate)
+	if err != nil {
+		return models.SavingsPlan{}, fmt.Errorf("failed to parse start date: %v", err)
+	}
 
 	totalEarnings := decimal.NewFromInt(0)
 	for i := 0; i < int(durationMonths.IntPart()); i++ {
 		currentInterest := currentCapital.Mul(monthlyInterestRate)
-		currentTax := currentInterest.Mul(info.TaxRate)
+		currentTax := currentInterest.Mul(tax)
 		totalEarnings = totalEarnings.Add(currentInterest).Sub(currentTax)
-		currentCapital = currentCapital.Add(currentInterest).Add(info.MonthlyContribution).Sub(currentTax)
+		currentCapital = currentCapital.Add(currentInterest).Add(monthlyContribution).Sub(currentTax)
 		currentStatus := models.SavingsStatus{
-			Date:         info.StartDate.AddDate(0, i, 0),
-			Interest:     int(currentInterest.IntPart()),
-			Tax:          int(currentTax.IntPart()),
-			Contribution: int(info.MonthlyContribution.IntPart()),
-			Increase:     int(currentInterest.IntPart()) + int(info.MonthlyContribution.IntPart()),
+			Date:         startDate.AddDate(0, i, 0),
+			Interest:     int(currentInterest.Round(0).IntPart()),
+			Tax:          int(currentTax.Round(0).IntPart()),
+			Contribution: int(monthlyContribution.Round(0).IntPart()),
+			Increase:     int(currentInterest.Add(monthlyContribution).Sub(currentTax).Round(0).IntPart()),
 			Capital:      int(currentCapital.IntPart()),
 		}
 		plan.Plan = append(plan.Plan, currentStatus)
 	}
-	rateOfReturn := currentCapital.Div(startingCapital).Mul(decimal.NewFromInt(100))
+	rateOfReturn := currentCapital.Div(startingCapital)
+	inflationAdjustedROR := rateOfReturn.Div(inflation.Pow(durationYears))
 
-	plan.TotalPassiveEarnings = int(totalEarnings.IntPart())
-	plan.RateOfReturn = rateOfReturn.String()
-	if info.InflationRate.Cmp(decimal.NewFromInt(0)) == 1 {
-		inflationMultiplier := info.InflationRate.Div(decimal.NewFromInt(100)).Add(decimal.NewFromInt(1)).Pow(info.DurationYears)
-		plan.InflationAdjustedROR = rateOfReturn.Div(inflationMultiplier).String()
-	}
+	plan.TotalInterestEarnings = int(totalEarnings.Round(0).IntPart())
+	plan.RateOfReturn = getReturnPercent(rateOfReturn)
+	plan.InflationAdjustedROR = getReturnPercent(inflationAdjustedROR)
 
 	return plan, nil
 }
