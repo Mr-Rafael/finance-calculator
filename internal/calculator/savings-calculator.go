@@ -15,16 +15,22 @@ func CalculateSavingsPlan(info models.SavingsRequestParams) (models.SavingsPlan,
 	currentCapital := startingCapital
 	monthlyInterestRate, err := getMonthlyInterestMultiplier(info.YearlyInterestRate)
 	if err != nil {
-		return models.SavingsPlan{}, fmt.Errorf("failed to parse interest rate: %v", err)
+		return models.SavingsPlan{}, fmt.Errorf("invalid interest rate: %v", info.YearlyInterestRate)
 	}
 	durationYears := decimal.NewFromInt(int64(info.DurationYears))
 	durationMonths := durationYears.Mul(decimal.NewFromInt(12))
 	monthlyContribution := decimal.NewFromInt(int64(info.MonthlyContribution))
-	tax := getTaxMultiplier(info.TaxRate)
-	inflation := getYearlyInflationMultiplier(info.YearlyInflationRate)
+	tax, err := getTaxMultiplier(info.TaxRate)
+	if err != nil {
+		return models.SavingsPlan{}, fmt.Errorf("invalid tax rate %v", info.TaxRate)
+	}
+	inflation, err := getYearlyInflationMultiplier(info.YearlyInflationRate)
+	if err != nil {
+		return models.SavingsPlan{}, fmt.Errorf("invalid inflation rate %v", info.YearlyInflationRate)
+	}
 	startDate, err := time.Parse("2006-01-02", info.StartDate)
 	if err != nil {
-		return models.SavingsPlan{}, fmt.Errorf("failed to parse start date: %v", err)
+		return models.SavingsPlan{}, fmt.Errorf("invalid start date: %v", info.StartDate)
 	}
 
 	totalEarnings := decimal.NewFromInt(0)

@@ -26,6 +26,10 @@ func (cfg *ApiConfig) HandlerCalculateGet(writer http.ResponseWriter, request *h
 	}
 
 	response, err := calculator.CalculateSavingsPlan(reqParams)
+	if err != nil {
+		respondWithError(writer, err.Error(), fmt.Sprintf("missing required fields: %v", err), http.StatusBadRequest)
+		return
+	}
 
 	respondWithJSON(writer, response, http.StatusOK)
 }
