@@ -4,13 +4,22 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func getMonthlyInterestMultiplier(APY string) (decimal.Decimal, error) {
+func getMonthlyAPYMultiplier(APY string) (decimal.Decimal, error) {
 	decimalInterest, err := decimal.NewFromString(APY)
 	if err != nil {
 		return decimal.NewFromInt(0), err
 	}
 	decimalInterest = decimalInterest.Div(decimal.NewFromInt(100)).Add(decimal.NewFromInt(1))
 	decimalInterest = decimalInterest.Pow(decimal.NewFromFloat(1.0 / 12.0)).Sub(decimal.NewFromInt(1))
+	return decimalInterest, nil
+}
+
+func getMonthlyAPRMultiplier(APR string) (decimal.Decimal, error) {
+	decimalInterest, err := decimal.NewFromString(APR)
+	if err != nil {
+		return decimal.NewFromInt(0), err
+	}
+	decimalInterest = decimalInterest.Div(decimal.NewFromInt(100)).Div(decimal.NewFromInt(12))
 	return decimalInterest, nil
 }
 

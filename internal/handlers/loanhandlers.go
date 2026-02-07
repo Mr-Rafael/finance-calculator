@@ -10,9 +10,9 @@ import (
 	"github.com/go-playground/validator"
 )
 
-func (cfg *ApiConfig) HandlerSavingsCalculateGet(writer http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) HandlerLoansCalculateGet(writer http.ResponseWriter, request *http.Request) {
 	decoder := json.NewDecoder(request.Body)
-	reqParams := models.SavingsRequestParams{}
+	reqParams := models.LoanRequestParams{}
 	err := decoder.Decode(&reqParams)
 	if err != nil {
 		respondWithErrorCode(writer, "received bad savings request", http.StatusBadRequest)
@@ -25,7 +25,7 @@ func (cfg *ApiConfig) HandlerSavingsCalculateGet(writer http.ResponseWriter, req
 		return
 	}
 
-	response, err := calculator.CalculateSavingsPlan(reqParams)
+	response, err := calculator.CalculateLoanPaymentPlan(reqParams)
 	if err != nil {
 		respondWithError(writer, err.Error(), fmt.Sprintf("missing required fields: %v", err), http.StatusBadRequest)
 		return

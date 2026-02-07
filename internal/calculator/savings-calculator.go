@@ -22,7 +22,7 @@ type SavingsInfo struct {
 func getSavingsInfoFromRequest(request models.SavingsRequestParams) (SavingsInfo, error) {
 	info := SavingsInfo{}
 	info.startingCapital = decimal.NewFromInt(int64(request.StartingCapital))
-	monthlyInterestRate, err := getMonthlyInterestMultiplier(request.YearlyInterestRate)
+	monthlyInterestRate, err := getMonthlyAPYMultiplier(request.YearlyInterestRate)
 	if err != nil {
 		return SavingsInfo{}, fmt.Errorf("invalid interest rate: %v", request.YearlyInterestRate)
 	}

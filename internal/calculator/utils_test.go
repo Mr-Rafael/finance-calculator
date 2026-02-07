@@ -7,7 +7,7 @@ import (
 )
 
 func TestMonthlyInterestMultiplier(t *testing.T) {
-	got, _ := getMonthlyInterestMultiplier("4.75")
+	got, _ := getMonthlyAPYMultiplier("4.75")
 	got = got.Round(9)
 	want, _ := decimal.NewFromString("0.00387468499")
 	want = want.Round(9)
@@ -17,7 +17,7 @@ func TestMonthlyInterestMultiplier(t *testing.T) {
 }
 
 func TestMonthlyInterestMultiplierError(t *testing.T) {
-	_, got := getMonthlyInterestMultiplier("0.0.3")
+	_, got := getMonthlyAPYMultiplier("0.0.3")
 	if got == nil {
 		t.Errorf("Got nil error | Expected error")
 	}

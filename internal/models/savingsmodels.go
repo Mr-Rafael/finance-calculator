@@ -20,10 +20,10 @@ type SavingsPlan struct {
 }
 
 type SavingsStatus struct {
-	Date         time.Time
-	Interest     int `json:"interest"`
-	Tax          int `json:"tax"`
-	Contribution int `json:"contribution"`
-	Increase     int `json:"increase"`
-	Capital      int `json:"capital"`
+	Date         time.Time `json:"date"`
+	Interest     int       `json:"interest"`
+	Tax          int       `json:"tax"`
+	Contribution int       `json:"contribution"`
+	Increase     int       `json:"increase"`
+	Capital      int       `json:"capital"`
 }
