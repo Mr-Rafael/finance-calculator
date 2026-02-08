@@ -11,7 +11,10 @@ type LoanRequestParams struct {
 }
 
 type LoanPaymentPlan struct {
-	Plan []LoanStatus `json:"plan"`
+	DurationMonths      int          `json:"durationMonths"`
+	TotalExpenditure    int          `json:"totalExpenditure"`
+	CostOfCreditPercent string       `json:"costOfCreditPercent"`
+	Plan                []LoanStatus `json:"plan"`
 }
 
 type LoanStatus struct {

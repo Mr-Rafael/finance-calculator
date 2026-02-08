@@ -58,11 +58,14 @@ func CalculateLoanPaymentPlan(info models.LoanRequestParams) (models.LoanPayment
 			Principal:     int(currentPrincipal.Round(0).IntPart()),
 			Interest:      int(currentInterest.Round(0).IntPart()),
 			Payment:       int(loanInfo.monthlyPayment.Round(0).IntPart()),
-			EscrowPayment: int(currentInterest.Add(loanInfo.escrowPayment).Round(0).IntPart()),
+			EscrowPayment: int(loanInfo.escrowPayment.Round(0).IntPart()),
 			Paydown:       int(currentPaydown.Round(0).IntPart()),
 		}
 		plan.Plan = append(plan.Plan, currentStatus)
-	}
 
+		plan.DurationMonths = i
+		plan.TotalExpenditure = int(totalExpenditure.Round(0).IntPart())
+		plan.CostOfCreditPercent = getReturnPercent(totalExpenditure.Add(loanInfo.startingPrincipal).Div(loanInfo.startingPrincipal))
+	}
 	return plan, nil
 }
