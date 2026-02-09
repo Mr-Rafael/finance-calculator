@@ -43,29 +43,37 @@ func CalculateLoanPaymentPlan(info models.LoanRequestParams) (models.LoanPayment
 
 	plan := models.LoanPaymentPlan{}
 	currentPrincipal := loanInfo.startingPrincipal
+	totalPaid := decimal.NewFromInt(0)
 	totalExpenditure := decimal.NewFromInt(0)
 	i := 0
 
-	for currentPrincipal.Compare(decimal.NewFromInt(0)) != -1 && i < 360 {
+	for currentPrincipal.Compare(decimal.NewFromInt(0)) == 1 && i < 360 {
+		currentPayment := loanInfo.monthlyPayment
 		currentInterest := currentPrincipal.Mul(loanInfo.monthlyInterestRate)
 		currentExpenditure := currentInterest.Add(loanInfo.escrowPayment)
 		totalExpenditure = totalExpenditure.Add(currentExpenditure)
 		currentPaydown := loanInfo.monthlyPayment.Sub(currentExpenditure)
 		currentPrincipal = currentPrincipal.Sub(currentPaydown)
+		if currentPrincipal.Compare(decimal.NewFromInt(0)) == -1 {
+			currentPayment = currentPayment.Add(currentPrincipal)
+			currentPaydown = currentPaydown.Add(currentPrincipal)
+			currentPrincipal = decimal.NewFromInt(0)
+		}
+		totalPaid = totalPaid.Add(currentPayment)
 		i++
 		currentStatus := models.LoanStatus{
 			Date:          loanInfo.startDate.AddDate(0, i, 0),
 			Principal:     int(currentPrincipal.Round(0).IntPart()),
 			Interest:      int(currentInterest.Round(0).IntPart()),
-			Payment:       int(loanInfo.monthlyPayment.Round(0).IntPart()),
+			Payment:       int(currentPayment.Round(0).IntPart()),
 			EscrowPayment: int(loanInfo.escrowPayment.Round(0).IntPart()),
 			Paydown:       int(currentPaydown.Round(0).IntPart()),
 		}
 		plan.Plan = append(plan.Plan, currentStatus)
-
-		plan.DurationMonths = i
-		plan.TotalExpenditure = int(totalExpenditure.Round(0).IntPart())
-		plan.CostOfCreditPercent = getReturnPercent(totalExpenditure.Add(loanInfo.startingPrincipal).Div(loanInfo.startingPrincipal))
 	}
+	plan.DurationMonths = i
+	plan.TotalExpenditure = int(totalExpenditure.Round(0).IntPart())
+	plan.TotalPaid = int(totalPaid.Round(0).IntPart())
+	plan.CostOfCreditPercent = getReturnPercent(totalPaid.Div(loanInfo.startingPrincipal))
 	return plan, nil
 }
