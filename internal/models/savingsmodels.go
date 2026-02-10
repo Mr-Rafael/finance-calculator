@@ -5,6 +5,7 @@ import "time"
 type SavingsRequestParams struct {
 	StartingCapital     int    `json:"startingCapital" validate:"required"`
 	YearlyInterestRate  string `json:"yearlyInterestRate" validate:"required"`
+	InterestRateType    string `json:"interestRateType"`
 	MonthlyContribution int    `json:"monthlyContribution" validate:"required"`
 	DurationYears       int    `json:"durationYears" validate:"required"`
 	TaxRate             string `json:"taxRate"`
@@ -13,6 +14,7 @@ type SavingsRequestParams struct {
 }
 
 type SavingsPlan struct {
+	MonthlyInterestRate   string          `json:"monthlyInterestRate"`
 	TotalInterestEarnings int             `json:"totalEarnings"`
 	RateOfReturn          string          `json:"rateOfReturn"`
 	InflationAdjustedROR  string          `json:"inflationAdjustedROR"`

@@ -22,7 +22,7 @@ type SavingsInfo struct {
 func getSavingsInfoFromRequest(request models.SavingsRequestParams) (SavingsInfo, error) {
 	info := SavingsInfo{}
 	info.startingCapital = decimal.NewFromInt(int64(request.StartingCapital))
-	monthlyInterestRate, err := getMonthlyAPYMultiplier(request.YearlyInterestRate)
+	monthlyInterestRate, err := getMonthlyInterestMultiplier(request.YearlyInterestRate, request.InterestRateType)
 	if err != nil {
 		return SavingsInfo{}, fmt.Errorf("invalid interest rate: %v", request.YearlyInterestRate)
 	}
@@ -78,9 +78,17 @@ func CalculateSavingsPlan(info models.SavingsRequestParams) (models.SavingsPlan,
 	rateOfReturn := totalEarnings.Add(savingsInfo.startingCapital).Div(savingsInfo.startingCapital)
 	inflationAdjustedROR := rateOfReturn.Div(savingsInfo.inflation.Pow(savingsInfo.durationYears))
 
+	plan.MonthlyInterestRate = savingsInfo.monthlyInterestRate.Mul(decimal.NewFromInt(100)).Round(9).String()
 	plan.TotalInterestEarnings = int(totalEarnings.Round(0).IntPart())
 	plan.RateOfReturn = getReturnPercent(rateOfReturn)
 	plan.InflationAdjustedROR = getReturnPercent(inflationAdjustedROR)
 
 	return plan, nil
+}
+
+func getMonthlyInterestMultiplier(yearlyInterestRate string, interestRateType string) (decimal.Decimal, error) {
+	if interestRateType == "APR" {
+		return getMonthlyAPRMultiplier(yearlyInterestRate)
+	}
+	return getMonthlyAPYMultiplier(yearlyInterestRate)
 }
