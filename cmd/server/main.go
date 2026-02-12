@@ -18,8 +18,8 @@ func main() {
 	mux.Handle("/app/", config.MiddlewareMetricsInc(http.StripPrefix("/app/", http.FileServer(http.Dir("./files")))))
 	mux.HandleFunc("GET /api/healthz", handlers.HandlerHealthZ)
 	mux.HandleFunc("GET /admin/metrics", config.HandlerMetrics)
-	mux.HandleFunc("GET /app/savings/calculate", config.HandlerSavingsCalculateGet)
-	mux.HandleFunc("GET /app/loans/calculate", config.HandlerLoansCalculateGet)
+	mux.HandleFunc("POST /app/savings/calculate", config.HandlerSavingsCalculateGet)
+	mux.HandleFunc("POST /app/loans/calculate", config.HandlerLoansCalculateGet)
 
 	server := &http.Server{
 		Addr:    port,
