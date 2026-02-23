@@ -51,3 +51,11 @@ func getReturnPercent(rate decimal.Decimal) string {
 	returnPercent := rate.Sub(decimal.NewFromInt(1)).Mul(decimal.NewFromInt(100))
 	return returnPercent.Round(2).String()
 }
+
+func decimalIsBetween(dec decimal.Decimal, lower string, upper string) bool {
+	lowerDecimal, _ := decimal.NewFromString(lower)
+	upperDecimal, _ := decimal.NewFromString(upper)
+	isAboveLower := dec.Compare(lowerDecimal) >= 0
+	isBelowUpper := upperDecimal.Compare(dec) >= 0
+	return isAboveLower && isBelowUpper
+}

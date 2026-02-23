@@ -8,6 +8,11 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const minLoanCents = "1"
+const maxLoanCents = "100000000000"
+const minInterestMultiplier = "0"
+const maxInterestMultiplier = "1"
+
 type LoanInfo struct {
 	startingPrincipal   decimal.Decimal
 	monthlyInterestRate decimal.Decimal
@@ -18,12 +23,21 @@ type LoanInfo struct {
 
 func getLoanInfoFromRequest(request models.LoanRequestParams) (LoanInfo, error) {
 	info := LoanInfo{}
+
 	info.startingPrincipal = decimal.NewFromInt(int64(request.StartingPrincipal))
+	if !decimalIsBetween(info.startingPrincipal, minLoanCents, maxLoanCents) {
+		return LoanInfo{}, fmt.Errorf("invalid starting principal: '%v'. the valid range is 0.01 - 1,000,000,000", info.startingPrincipal.Div(decimal.NewFromInt(100)).Round(2))
+	}
+
 	monthlyInterestRate, err := getMonthlyAPRMultiplier(request.YearlyInterestRate)
+	if !decimalIsBetween(info.monthlyInterestRate, minInterestMultiplier, maxInterestMultiplier) {
+		return LoanInfo{}, fmt.Errorf("invalid interest rate: '%v'. the valid range is 0%% - 100%%", info.monthlyInterestRate)
+	}
 	if err != nil {
-		return LoanInfo{}, fmt.Errorf("invalid interest rate: %v", request.YearlyInterestRate)
+		return LoanInfo{}, fmt.Errorf("invalid interest rate: '%v'", request.YearlyInterestRate)
 	}
 	info.monthlyInterestRate = monthlyInterestRate
+
 	info.monthlyPayment = decimal.NewFromInt(int64(request.MonthlyPayment))
 	info.escrowPayment = decimal.NewFromInt(int64(request.EscrowPayment))
 	startDate, err := time.Parse("2006-01-02", request.StartDate)

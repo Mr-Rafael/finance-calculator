@@ -27,7 +27,7 @@ func (cfg *ApiConfig) HandlerLoansCalculateGet(writer http.ResponseWriter, reque
 
 	response, err := calculator.CalculateLoanPaymentPlan(reqParams)
 	if err != nil {
-		respondWithError(writer, err.Error(), fmt.Sprintf("missing required fields: %v", err), http.StatusBadRequest)
+		respondWithError(writer, err.Error(), fmt.Sprintf("error calculating the payment plan: %v", err), http.StatusBadRequest)
 		return
 	}
 

@@ -27,7 +27,7 @@ func (cfg *ApiConfig) HandlerSavingsCalculateGet(writer http.ResponseWriter, req
 
 	response, err := calculator.CalculateSavingsPlan(reqParams)
 	if err != nil {
-		respondWithError(writer, err.Error(), fmt.Sprintf("missing required fields: %v", err), http.StatusBadRequest)
+		respondWithError(writer, err.Error(), fmt.Sprintf("error calculating the savings plan: %v", err), http.StatusBadRequest)
 		return
 	}
 
