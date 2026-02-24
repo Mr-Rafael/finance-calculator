@@ -59,3 +59,12 @@ func decimalIsBetween(dec decimal.Decimal, lower string, upper string) bool {
 	isBelowUpper := upperDecimal.Compare(dec) >= 0
 	return isAboveLower && isBelowUpper
 }
+
+func stringNumberBetween(number string, lower string, upper string) bool {
+	numDecimal, _ := decimal.NewFromString(number)
+	lowerDecimal, _ := decimal.NewFromString(lower)
+	upperDecimal, _ := decimal.NewFromString(upper)
+	isAboveLower := numDecimal.Compare(lowerDecimal) >= 0
+	isBelowUpper := upperDecimal.Compare(numDecimal) >= 0
+	return isAboveLower && isBelowUpper
+}

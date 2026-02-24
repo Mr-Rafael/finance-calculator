@@ -10,8 +10,10 @@ import (
 
 const minLoanCents = "1"
 const maxLoanCents = "100000000000"
-const minInterestMultiplier = "0"
-const maxInterestMultiplier = "1"
+const minInterestRate = "0"
+const maxInterestRate = "100"
+const minMonthlyPaymentCents = "1"
+const maxMonthlyPaymentCents = "100000000000"
 
 type LoanInfo struct {
 	startingPrincipal   decimal.Decimal
@@ -26,19 +28,23 @@ func getLoanInfoFromRequest(request models.LoanRequestParams) (LoanInfo, error) 
 
 	info.startingPrincipal = decimal.NewFromInt(int64(request.StartingPrincipal))
 	if !decimalIsBetween(info.startingPrincipal, minLoanCents, maxLoanCents) {
-		return LoanInfo{}, fmt.Errorf("invalid starting principal: '%v'. the valid range is 0.01 - 1,000,000,000", info.startingPrincipal.Div(decimal.NewFromInt(100)).Round(2))
+		return LoanInfo{}, fmt.Errorf("invalid starting principal: '%v'. the accepted range is 0.01 - 1,000,000,000", info.startingPrincipal.Div(decimal.NewFromInt(100)).Round(2))
 	}
 
-	monthlyInterestRate, err := getMonthlyAPRMultiplier(request.YearlyInterestRate)
-	if !decimalIsBetween(info.monthlyInterestRate, minInterestMultiplier, maxInterestMultiplier) {
-		return LoanInfo{}, fmt.Errorf("invalid interest rate: '%v'. the valid range is 0%% - 100%%", info.monthlyInterestRate)
+	if !stringNumberBetween(request.YearlyInterestRate, minInterestRate, maxInterestRate) {
+		return LoanInfo{}, fmt.Errorf("invalid interest rate: '%v'. the accepted range is 0%% - 100%%", request.YearlyInterestRate)
 	}
+	monthlyInterestRate, err := getMonthlyAPRMultiplier(request.YearlyInterestRate)
 	if err != nil {
 		return LoanInfo{}, fmt.Errorf("invalid interest rate: '%v'", request.YearlyInterestRate)
 	}
 	info.monthlyInterestRate = monthlyInterestRate
 
 	info.monthlyPayment = decimal.NewFromInt(int64(request.MonthlyPayment))
+	if !decimalIsBetween(info.monthlyPayment, minMonthlyPaymentCents, maxMonthlyPaymentCents) {
+		return LoanInfo{}, fmt.Errorf("invalid monthly payments: '%v'. the accepted range is 0.01 - 1,000,000,000", info.monthlyPayment.Div(decimal.NewFromInt(100)).Round(2))
+	}
+
 	info.escrowPayment = decimal.NewFromInt(int64(request.EscrowPayment))
 	startDate, err := time.Parse("2006-01-02", request.StartDate)
 	if err != nil {
