@@ -21,7 +21,7 @@ func (cfg *ApiConfig) HandlerSavingsCalculateGet(writer http.ResponseWriter, req
 
 	validate := validator.New()
 	if err := validate.Struct(reqParams); err != nil {
-		respondWithError(writer, err.Error(), fmt.Sprintf("missing required fields: %v", err), http.StatusBadRequest)
+		respondWithError(writer, err.Error(), "missing required fields in the request", http.StatusBadRequest)
 		return
 	}
 

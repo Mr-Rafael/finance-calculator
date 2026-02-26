@@ -8,6 +8,15 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const minStartCapCents = "1"
+const maxStartCapCents = "1000000000"
+const minSavIntRate = "0.0001"
+const maxSavIntRate = "1"
+const minDurYears = "1"
+const maxDurYears = "50"
+const minMonthContrib = "0"
+const maxMonthContrib = "1000000000"
+
 type SavingsInfo struct {
 	startingCapital     decimal.Decimal
 	monthlyInterestRate decimal.Decimal
@@ -21,15 +30,33 @@ type SavingsInfo struct {
 
 func getSavingsInfoFromRequest(request models.SavingsRequestParams) (SavingsInfo, error) {
 	info := SavingsInfo{}
+	aHundred := decimal.NewFromInt(100)
+
 	info.startingCapital = decimal.NewFromInt(int64(request.StartingCapital))
+	if !decimalIsBetween(info.startingCapital, minStartCapCents, maxStartCapCents) {
+		return SavingsInfo{}, fmt.Errorf("invalid starting amount '%v'. the valid range is 0.01-1,000,000,000", info.startingCapital.Div(aHundred).Round(2))
+	}
+
 	monthlyInterestRate, err := getMonthlyInterestMultiplier(request.YearlyInterestRate, request.InterestRateType)
 	if err != nil {
 		return SavingsInfo{}, fmt.Errorf("invalid interest rate: %v", request.YearlyInterestRate)
 	}
+	if !decimalIsBetween(monthlyInterestRate, minSavIntRate, maxSavIntRate) {
+		return SavingsInfo{}, fmt.Errorf("invalid interest rate '%v'. The valid range is 0.001-1", request.YearlyInterestRate)
+	}
 	info.monthlyInterestRate = monthlyInterestRate
+
 	info.durationYears = decimal.NewFromInt(int64(request.DurationYears))
 	info.durationMonths = info.durationYears.Mul(decimal.NewFromInt(12))
+	if !decimalIsBetween(info.durationYears, minDurYears, maxDurYears) {
+		return SavingsInfo{}, fmt.Errorf("invalid interest rate '%v'. The valid range is 0.001-1", request.YearlyInterestRate)
+	}
+
 	info.monthlyContribution = decimal.NewFromInt(int64(request.MonthlyContribution))
+	if !decimalIsBetween(info.monthlyContribution, minDurYears, maxDurYears) {
+		return SavingsInfo{}, fmt.Errorf("invalid interest rate '%v'. The valid range is 0-1,000,000,000", request.MonthlyContribution)
+	}
+
 	tax, err := getTaxMultiplier(request.TaxRate)
 	if err != nil {
 		return SavingsInfo{}, fmt.Errorf("invalid tax rate %v", request.TaxRate)

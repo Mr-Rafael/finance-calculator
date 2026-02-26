@@ -28,10 +28,11 @@ type LoanInfo struct {
 
 func getLoanInfoFromRequest(request models.LoanRequestParams) (LoanInfo, error) {
 	info := LoanInfo{}
+	aHundred := decimal.NewFromInt(100)
 
 	info.startingPrincipal = decimal.NewFromInt(int64(request.StartingPrincipal))
 	if !decimalIsBetween(info.startingPrincipal, minLoanCents, maxLoanCents) {
-		return LoanInfo{}, fmt.Errorf("invalid starting principal: '%v'. the accepted range is 0.01 - 1,000,000,000", info.startingPrincipal.Div(decimal.NewFromInt(100)).Round(2))
+		return LoanInfo{}, fmt.Errorf("invalid starting principal: '%v'. the accepted range is 0.01 - 1,000,000,000", info.startingPrincipal.Div(aHundred).Round(2))
 	}
 
 	if !stringNumberBetween(request.YearlyInterestRate, minInterestRate, maxInterestRate) {
@@ -45,12 +46,12 @@ func getLoanInfoFromRequest(request models.LoanRequestParams) (LoanInfo, error) 
 
 	info.monthlyPayment = decimal.NewFromInt(int64(request.MonthlyPayment))
 	if !decimalIsBetween(info.monthlyPayment, minMonthlyPaymentCents, maxMonthlyPaymentCents) {
-		return LoanInfo{}, fmt.Errorf("invalid monthly payments: '%v'. the accepted range is 0.01 - 1,000,000,000", info.monthlyPayment.Div(decimal.NewFromInt(100)).Round(2))
+		return LoanInfo{}, fmt.Errorf("invalid monthly payments: '%v'. the accepted range is 0.01 - 1,000,000,000", info.monthlyPayment.Div(aHundred).Round(2))
 	}
 
 	info.escrowPayment = decimal.NewFromInt(int64(request.EscrowPayment))
 	if !decimalIsBetween(info.escrowPayment, minEscrowCents, maxEscrowCents) {
-		return LoanInfo{}, fmt.Errorf("invalid escrow payment: '%v'. the accepted range is 0.01 - 1,000,000,000", info.escrowPayment.Div(decimal.NewFromInt(100)).Round(2))
+		return LoanInfo{}, fmt.Errorf("invalid escrow payment: '%v'. the accepted range is 0.01 - 1,000,000,000", info.escrowPayment.Div(aHundred).Round(2))
 	}
 
 	startDate, err := time.Parse("2006-01-02", request.StartDate)
