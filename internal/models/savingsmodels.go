@@ -3,14 +3,14 @@ package models
 import "time"
 
 type SavingsRequestParams struct {
-	StartingCapital     int    `json:"startingCapital" validate:"required"`
-	YearlyInterestRate  string `json:"yearlyInterestRate" validate:"required"`
+	StartingCapital     int    `json:"startingCapital"`
+	YearlyInterestRate  string `json:"yearlyInterestRate"`
 	InterestRateType    string `json:"interestRateType"`
-	MonthlyContribution int    `json:"monthlyContribution" validate:"required"`
-	DurationYears       int    `json:"durationYears" validate:"required"`
+	MonthlyContribution int    `json:"monthlyContribution"`
+	DurationYears       int    `json:"durationYears"`
 	TaxRate             string `json:"taxRate"`
 	YearlyInflationRate string `json:"yearlyInflationRate"`
-	StartDate           string `json:"startDate" validate:"required"`
+	StartDate           string `json:"startDate"`
 }
 
 type SavingsPlan struct {

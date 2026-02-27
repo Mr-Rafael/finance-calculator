@@ -7,7 +7,6 @@ import (
 
 	"github.com/Mr-Rafael/finance-calculator/internal/calculator"
 	"github.com/Mr-Rafael/finance-calculator/internal/models"
-	"github.com/go-playground/validator"
 )
 
 func (cfg *ApiConfig) HandlerSavingsCalculateGet(writer http.ResponseWriter, request *http.Request) {
@@ -16,12 +15,6 @@ func (cfg *ApiConfig) HandlerSavingsCalculateGet(writer http.ResponseWriter, req
 	err := decoder.Decode(&reqParams)
 	if err != nil {
 		respondWithErrorCode(writer, "received bad savings request", http.StatusBadRequest)
-		return
-	}
-
-	validate := validator.New()
-	if err := validate.Struct(reqParams); err != nil {
-		respondWithError(writer, err.Error(), "missing required fields in the request", http.StatusBadRequest)
 		return
 	}
 

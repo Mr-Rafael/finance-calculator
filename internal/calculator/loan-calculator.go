@@ -35,10 +35,10 @@ func getLoanInfoFromRequest(request models.LoanRequestParams) (LoanInfo, error) 
 		return LoanInfo{}, fmt.Errorf("invalid starting principal: '%v'. the accepted range is 0.01 - 1,000,000,000", info.startingPrincipal.Div(aHundred).Round(2))
 	}
 
+	monthlyInterestRate, err := getMonthlyAPRMultiplier(request.YearlyInterestRate)
 	if !stringNumberBetween(request.YearlyInterestRate, minInterestRate, maxInterestRate) {
 		return LoanInfo{}, fmt.Errorf("invalid interest rate: '%v'. the accepted range is 0%% - 100%%", request.YearlyInterestRate)
 	}
-	monthlyInterestRate, err := getMonthlyAPRMultiplier(request.YearlyInterestRate)
 	if err != nil {
 		return LoanInfo{}, fmt.Errorf("invalid interest rate: '%v'", request.YearlyInterestRate)
 	}
@@ -81,17 +81,17 @@ func CalculateLoanPaymentPlan(info models.LoanRequestParams) (models.LoanPayment
 			minPayment.Div(decimal.NewFromInt(100)).Round(2).IntPart())
 	}
 
-	for currentPrincipal.Compare(decimal.NewFromInt(0)) == 1 && i < (maxPaymentYears*12) {
+	for currentPrincipal.Compare(decimal.Zero) == 1 && i < (maxPaymentYears*12) {
 		currentPayment := loanInfo.monthlyPayment
 		currentInterest := currentPrincipal.Mul(loanInfo.monthlyInterestRate)
 		currentExpenditure := currentInterest.Add(loanInfo.escrowPayment)
 		totalExpenditure = totalExpenditure.Add(currentExpenditure)
 		currentPaydown := loanInfo.monthlyPayment.Sub(currentExpenditure)
-		currentPrincipal = currentPrincipal.Sub(currentPaydown)
-		if currentPrincipal.Compare(decimal.NewFromInt(0)) == -1 {
-			currentPayment = currentPayment.Add(currentPrincipal)
-			currentPaydown = currentPaydown.Add(currentPrincipal)
-			currentPrincipal = decimal.NewFromInt(0)
+
+		if currentPrincipal.Compare(currentPaydown) == -1 {
+			currentPaydown = currentPrincipal
+			currentPayment = currentPaydown.Add(currentExpenditure)
+			currentPrincipal = decimal.Zero
 		}
 		totalPaid = totalPaid.Add(currentPayment)
 		i++
@@ -100,13 +100,13 @@ func CalculateLoanPaymentPlan(info models.LoanRequestParams) (models.LoanPayment
 			Principal:     int(currentPrincipal.Round(0).IntPart()),
 			Interest:      int(currentInterest.Round(0).IntPart()),
 			Payment:       int(currentPayment.Round(0).IntPart()),
-			EscrowPayment: int(loanInfo.escrowPayment.Round(0).IntPart()),
+			OtherPayments: int(loanInfo.escrowPayment.Round(0).IntPart()),
 			Paydown:       int(currentPaydown.Round(0).IntPart()),
 		}
 		plan.Plan = append(plan.Plan, currentStatus)
 	}
 	if currentPrincipal.GreaterThan(decimal.Zero) {
-		return models.LoanPaymentPlan{}, fmt.Errorf("loan term surpasses the accepted limit (%v years), with a remaining %v principal. please enter a higher monthly payment.",
+		return models.LoanPaymentPlan{}, fmt.Errorf("loan term surpasses the accepted limit (%v years), with a remaining %v principal. please enter a higher monthly payment.\n",
 			maxPaymentYears,
 			currentPrincipal.Round(0).IntPart())
 	}
@@ -115,6 +115,8 @@ func CalculateLoanPaymentPlan(info models.LoanRequestParams) (models.LoanPayment
 	plan.TotalExpenditure = int(totalExpenditure.Round(0).IntPart())
 	plan.TotalPaid = int(totalPaid.Round(0).IntPart())
 	plan.CostOfCreditPercent = getReturnPercent(totalPaid.Div(loanInfo.startingPrincipal))
+
+	fmt.Printf("Total Paid: |%v|. Starting Principal: |%v|. Quotient: |%v|. Cost of Credit: |%v|", totalPaid, loanInfo.startingPrincipal, totalPaid.Div(loanInfo.startingPrincipal), plan.CostOfCreditPercent)
 	return plan, nil
 }
 

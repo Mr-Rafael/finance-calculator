@@ -3,11 +3,11 @@ package models
 import "time"
 
 type LoanRequestParams struct {
-	StartingPrincipal  int    `json:"startingPrincipal" validate:"required"`
-	YearlyInterestRate string `json:"yearlyInterestRate" validate:"required"`
-	MonthlyPayment     int    `json:"monthlyPayment" validate:"required"`
+	StartingPrincipal  int    `json:"startingPrincipal"`
+	YearlyInterestRate string `json:"yearlyInterestRate"`
+	MonthlyPayment     int    `json:"monthlyPayment"`
 	EscrowPayment      int    `json:"escrowPayment"`
-	StartDate          string `json:"startDate" validate:"required"`
+	StartDate          string `json:"startDate"`
 }
 
 type LoanPaymentPlan struct {
@@ -22,7 +22,7 @@ type LoanStatus struct {
 	Date          time.Time `json:"date"`
 	Payment       int       `json:"payment"`
 	Interest      int       `json:"interest"`
-	EscrowPayment int       `json:"escrowPayment"`
+	OtherPayments int       `json:"otherPayments"`
 	Paydown       int       `json:"paydown"`
 	Principal     int       `json:"principal"`
 }

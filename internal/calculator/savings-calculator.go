@@ -16,6 +16,8 @@ const minDurYears = "1"
 const maxDurYears = "50"
 const minMonthContrib = "0"
 const maxMonthContrib = "1000000000"
+const minTaxPercent = "0"
+const maxTaxPercent = "100"
 
 type SavingsInfo struct {
 	startingCapital     decimal.Decimal
@@ -53,7 +55,7 @@ func getSavingsInfoFromRequest(request models.SavingsRequestParams) (SavingsInfo
 	}
 
 	info.monthlyContribution = decimal.NewFromInt(int64(request.MonthlyContribution))
-	if !decimalIsBetween(info.monthlyContribution, minDurYears, maxDurYears) {
+	if !decimalIsBetween(info.monthlyContribution, minMonthContrib, maxMonthContrib) {
 		return SavingsInfo{}, fmt.Errorf("invalid interest rate '%v'. The valid range is 0-1,000,000,000", request.MonthlyContribution)
 	}
 
@@ -61,12 +63,17 @@ func getSavingsInfoFromRequest(request models.SavingsRequestParams) (SavingsInfo
 	if err != nil {
 		return SavingsInfo{}, fmt.Errorf("invalid tax rate %v", request.TaxRate)
 	}
+	if !stringNumberBetween(request.TaxRate, minTaxPercent, maxTaxPercent) {
+		return SavingsInfo{}, fmt.Errorf("invalid tax rate '%v'. The valid range is 0-100%%.", request.TaxRate)
+	}
 	info.tax = tax
+
 	inflation, err := getYearlyInflationMultiplier(request.YearlyInflationRate)
 	if err != nil {
 		return SavingsInfo{}, fmt.Errorf("invalid inflation rate %v", request.YearlyInflationRate)
 	}
 	info.inflation = inflation
+
 	startDate, err := time.Parse("2006-01-02", request.StartDate)
 	if err != nil {
 		return SavingsInfo{}, fmt.Errorf("invalid start date: %v", request.StartDate)
