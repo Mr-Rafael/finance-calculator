@@ -116,7 +116,6 @@ func CalculateLoanPaymentPlan(info models.LoanRequestParams) (models.LoanPayment
 	plan.TotalPaid = int(totalPaid.Round(0).IntPart())
 	plan.CostOfCreditPercent = getReturnPercent(totalPaid.Div(loanInfo.startingPrincipal))
 
-	fmt.Printf("Total Paid: |%v|. Starting Principal: |%v|. Quotient: |%v|. Cost of Credit: |%v|", totalPaid, loanInfo.startingPrincipal, totalPaid.Div(loanInfo.startingPrincipal), plan.CostOfCreditPercent)
 	return plan, nil
 }
 
