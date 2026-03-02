@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/Mr-Rafael/finance-calculator/internal/handlers"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
 
@@ -22,11 +25,28 @@ func main() {
 	var config handlers.ApiConfig
 	config.FileserverHits.Store(0)
 
+	ctx := context.Background()
+
+	dbURL := os.Getenv("POSTGRES_CONNECTION_STRING")
+	if dbURL == "" {
+		log.Fatal("DB_URL not set")
+	}
+
+	pool, err := pgxpool.New(ctx, dbURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer pool.Close()
+
+	config.Queries = db.New(pool)
+
 	mux.Handle("/app/", config.MiddlewareMetricsInc(http.StripPrefix("/app/", http.FileServer(http.Dir("./files")))))
 	mux.HandleFunc("GET /api/healthz", handlers.HandlerHealthZ)
 	mux.HandleFunc("GET /admin/metrics", config.HandlerMetrics)
 	mux.HandleFunc("POST /app/savings/calculate", config.HandlerSavingsCalculateGet)
 	mux.HandleFunc("POST /app/loans/calculate", config.HandlerLoansCalculateGet)
+	mux.HandleFunc("POST /app/users/create", config.HandlerUsersCreate)
 
 	server := &http.Server{
 		Addr:    port,

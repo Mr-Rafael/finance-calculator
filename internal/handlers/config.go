@@ -3,10 +3,13 @@ package handlers
 import (
 	"net/http"
 	"sync/atomic"
+
+	"github.com/Mr-Rafael/finance-calculator/internal/db"
 )
 
 type ApiConfig struct {
 	FileserverHits atomic.Int32
+	Queries        *db.Queries
 }
 
 func (cfg *ApiConfig) MiddlewareMetricsInc(next http.Handler) http.Handler {
