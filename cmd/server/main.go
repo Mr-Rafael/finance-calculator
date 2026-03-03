@@ -47,6 +47,7 @@ func main() {
 	mux.HandleFunc("POST /app/savings/calculate", config.HandlerSavingsCalculateGet)
 	mux.HandleFunc("POST /app/loans/calculate", config.HandlerLoansCalculateGet)
 	mux.HandleFunc("POST /app/users/create", config.HandlerUsersCreate)
+	mux.HandleFunc("POST /app/users/login", config.HandlerUsersLogin)
 
 	server := &http.Server{
 		Addr:    port,
