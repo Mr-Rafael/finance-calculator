@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Mr-Rafael/finance-calculator/internal/auth"
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/Mr-Rafael/finance-calculator/internal/models"
 	"golang.org/x/crypto/bcrypt"
@@ -60,11 +61,16 @@ func (cfg *ApiConfig) HandlerUsersLogin(writer http.ResponseWriter, request *htt
 		return
 	}
 
+	accessToken, err := auth.GenerateAccessToken(user.ID.String(), cfg.AccessSecret)
+	if err != nil {
+		respondWithError(writer, fmt.Sprintf("Error generating access token: %v", err), "There was an error generating access token.", http.StatusInternalServerError)
+	}
+
 	respondWithJSON(writer, models.UserLoginResponseParams{
 		ID:           user.ID.String(),
 		Email:        user.Email,
 		Username:     user.Username,
+		AccessToken:  accessToken,
 		RefreshToken: "pending",
-		AccessToken:  "pending",
 	}, http.StatusOK)
 }
