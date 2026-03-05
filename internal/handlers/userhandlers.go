@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"github.com/Mr-Rafael/finance-calculator/internal/auth"
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/Mr-Rafael/finance-calculator/internal/models"
+	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -66,11 +68,34 @@ func (cfg *ApiConfig) HandlerUsersLogin(writer http.ResponseWriter, request *htt
 		respondWithError(writer, fmt.Sprintf("Error generating access token: %v", err), "There was an error generating access token.", http.StatusInternalServerError)
 	}
 
+	refreshToken, expDate, err := auth.GenerateRefreshToken(user.ID.String(), cfg.RefreshSecret)
+	if err != nil {
+		respondWithError(writer, fmt.Sprintf("Error generating refresh token: %v", err), "There was an error generating the refresh token.", http.StatusInternalServerError)
+	}
+
+	hashedRefToken := fmt.Sprintf("%x", sha256.Sum256([]byte(refreshToken)))
+	refreshTokenInsertParams := db.CreateRefreshTokenParams{
+		UserID:    user.ID,
+		TokenHash: hashedRefToken,
+		ExpiresAt: pgtype.Timestamptz{
+			Time:  expDate,
+			Valid: true,
+		},
+		Revoked: pgtype.Bool{
+			Bool:  true,
+			Valid: true,
+		},
+	}
+	_, err = cfg.Queries.CreateRefreshToken(context.Background(), refreshTokenInsertParams)
+	if err != nil {
+		respondWithError(writer, fmt.Sprintf("Error storing refresh token on database: %v", err), "There was an error storing refresh toking on DB.", http.StatusInternalServerError)
+	}
+
 	respondWithJSON(writer, models.UserLoginResponseParams{
 		ID:           user.ID.String(),
 		Email:        user.Email,
 		Username:     user.Username,
 		AccessToken:  accessToken,
-		RefreshToken: "pending",
+		RefreshToken: refreshToken,
 	}, http.StatusOK)
 }

@@ -25,6 +25,7 @@ func main() {
 	var config handlers.ApiConfig
 	config.FileserverHits.Store(0)
 	config.AccessSecret = os.Getenv("ACCESS_SECRET")
+	config.RefreshSecret = os.Getenv("REFRESH_SECRET")
 
 	ctx := context.Background()
 
