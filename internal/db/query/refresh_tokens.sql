@@ -5,4 +5,8 @@ RETURNING *;
 
 -- name: GetTokenByHash :one
 SELECT * FROM refresh_tokens
-WHERE id = $1;
+WHERE token_hash = $1;
+
+-- name: RevokeTokenByUserID :exec
+DELETE FROM refresh_tokens
+WHERE user_id = $1;

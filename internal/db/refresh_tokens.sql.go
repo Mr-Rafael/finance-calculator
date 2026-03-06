@@ -45,11 +45,11 @@ func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshToken
 
 const getTokenByHash = `-- name: GetTokenByHash :one
 SELECT id, user_id, token_hash, expires_at, revoked, created_at FROM refresh_tokens
-WHERE id = $1
+WHERE token_hash = $1
 `
 
-func (q *Queries) GetTokenByHash(ctx context.Context, id pgtype.UUID) (RefreshToken, error) {
-	row := q.db.QueryRow(ctx, getTokenByHash, id)
+func (q *Queries) GetTokenByHash(ctx context.Context, tokenHash string) (RefreshToken, error) {
+	row := q.db.QueryRow(ctx, getTokenByHash, tokenHash)
 	var i RefreshToken
 	err := row.Scan(
 		&i.ID,
@@ -60,4 +60,14 @@ func (q *Queries) GetTokenByHash(ctx context.Context, id pgtype.UUID) (RefreshTo
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const revokeTokenByUserID = `-- name: RevokeTokenByUserID :exec
+DELETE FROM refresh_tokens
+WHERE user_id = $1
+`
+
+func (q *Queries) RevokeTokenByUserID(ctx context.Context, userID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, revokeTokenByUserID, userID)
+	return err
 }
