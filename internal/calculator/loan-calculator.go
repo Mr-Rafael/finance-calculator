@@ -82,11 +82,13 @@ func CalculateLoanPaymentPlan(info models.LoanRequestParams) (models.LoanPayment
 	}
 
 	for currentPrincipal.Compare(decimal.Zero) == 1 && i < (maxPaymentYears*12) {
+		fmt.Printf("Current principal at start of loop: %v\n", currentPrincipal)
 		currentPayment := loanInfo.monthlyPayment
 		currentInterest := currentPrincipal.Mul(loanInfo.monthlyInterestRate)
 		currentExpenditure := currentInterest.Add(loanInfo.escrowPayment)
 		totalExpenditure = totalExpenditure.Add(currentExpenditure)
 		currentPaydown := loanInfo.monthlyPayment.Sub(currentExpenditure)
+		currentPrincipal = currentPrincipal.Sub(currentPaydown)
 
 		if currentPrincipal.Compare(currentPaydown) == -1 {
 			currentPaydown = currentPrincipal
@@ -104,6 +106,8 @@ func CalculateLoanPaymentPlan(info models.LoanRequestParams) (models.LoanPayment
 			Paydown:       int(currentPaydown.Round(0).IntPart()),
 		}
 		plan.Plan = append(plan.Plan, currentStatus)
+
+		fmt.Printf("Current principal at end of loop: %v\n", currentPrincipal)
 	}
 	if currentPrincipal.GreaterThan(decimal.Zero) {
 		return models.LoanPaymentPlan{}, fmt.Errorf("loan term surpasses the accepted limit (%v years), with a remaining %v principal. please enter a higher monthly payment.\n",
