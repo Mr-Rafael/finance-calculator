@@ -1,0 +1,16 @@
+-- name: CreateSavingsState :one
+INSERT INTO savings_state (savings_id,
+    date,
+    interest,
+    tax,
+    contribution,
+    increase,
+    capital
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING *;
+
+-- name: GetSavingsStateBySavingsID :many
+SELECT * FROM savings_state
+WHERE savings_id = $1;
+
