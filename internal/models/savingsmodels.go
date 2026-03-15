@@ -29,3 +29,16 @@ type SavingsStatus struct {
 	Increase     int       `json:"increase"`
 	Capital      int       `json:"capital"`
 }
+
+type SavingsSaveRequestParams struct {
+	UserID              string `json:"user_id"`
+	Name                string `json:"name"`
+	StartingCapital     int    `json:"startingCapital"`
+	YearlyInterestRate  string `json:"yearlyInterestRate"`
+	InterestRateType    string `json:"interestRateType"`
+	MonthlyContribution int    `json:"monthlyContribution"`
+	DurationYears       int    `json:"durationYears"`
+	TaxRate             string `json:"taxRate"`
+	YearlyInflationRate string `json:"yearlyInflationRate"`
+	StartDate           string `json:"startDate"`
+}

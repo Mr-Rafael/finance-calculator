@@ -9,7 +9,7 @@ import (
 	"github.com/Mr-Rafael/finance-calculator/internal/models"
 )
 
-func (cfg *ApiConfig) HandlerLoansCalculateGet(writer http.ResponseWriter, request *http.Request) {
+func (cfg *ApiConfig) HandlerLoansCalculatePost(writer http.ResponseWriter, request *http.Request) {
 	decoder := json.NewDecoder(request.Body)
 	reqParams := models.LoanRequestParams{}
 	err := decoder.Decode(&reqParams)
