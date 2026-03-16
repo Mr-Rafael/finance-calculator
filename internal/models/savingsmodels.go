@@ -31,7 +31,6 @@ type SavingsStatus struct {
 }
 
 type SavingsSaveRequestParams struct {
-	UserID              string `json:"user_id"`
 	Name                string `json:"name"`
 	StartingCapital     int    `json:"startingCapital"`
 	YearlyInterestRate  string `json:"yearlyInterestRate"`

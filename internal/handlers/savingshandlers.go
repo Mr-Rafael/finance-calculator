@@ -35,13 +35,23 @@ func (cfg *ApiConfig) HandlerSavingsCalculatePost(writer http.ResponseWriter, re
 func (cfg *ApiConfig) HandlerSavingsSavePost(writer http.ResponseWriter, request *http.Request) {
 	decoder := json.NewDecoder(request.Body)
 	reqParams := models.SavingsSaveRequestParams{}
-	err := decoder.Decode(&reqParams)
+	userIDString, ok := GetUserID(request.Context())
+	if !ok {
+		respondWithErrorCode(writer, "failed to extract used ID from access token.", http.StatusUnauthorized)
+		return
+	}
+	userID, err := utils.StringToUUID(userIDString)
+	if err != nil {
+		respondWithErrorCode(writer, fmt.Sprintf("failed to extract used ID from access token: %v", err), http.StatusUnauthorized)
+		return
+	}
+
+	err = decoder.Decode(&reqParams)
 	if err != nil {
 		respondWithErrorCode(writer, "received bad savings request", http.StatusBadRequest)
 		return
 	}
 
-	userID, err := utils.StringToUUID(reqParams.UserID)
 	if err != nil {
 		respondWithError(writer, "Invalid User ID", "Invalid User ID.", http.StatusBadRequest)
 		return

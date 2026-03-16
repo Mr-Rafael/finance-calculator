@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -9,6 +11,10 @@ import (
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/golang-jwt/jwt/v5"
 )
+
+type contextKey string
+
+const userIDKey contextKey = "userID"
 
 type ApiConfig struct {
 	FileserverHits atomic.Int32
@@ -27,29 +33,73 @@ func (cfg *ApiConfig) MiddlewareMetricsInc(next http.Handler) http.Handler {
 func (cfg *ApiConfig) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		authHeader := r.Header.Get("Authorization")
-
-		if authHeader == "" {
-			respondWithErrorCode(w, "missing authorization header", http.StatusUnauthorized)
+		token, err := extractToken(r)
+		if err != nil {
+			respondWithError(w, fmt.Sprintf("failed to extract acces token: %v"), fmt.Sprintf("failed to extract acces token: %v"), http.StatusUnauthorized)
 			return
 		}
 
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method")
-			}
-
-			return []byte(cfg.AccessSecret), nil
-		})
-
-		if err != nil || !token.Valid {
-			respondWithErrorCode(w, "expired token", http.StatusUnauthorized)
+		userID, err := validateToken(token, []byte(cfg.AccessSecret))
+		if err != nil {
+			respondWithError(w, fmt.Sprintf("invalid access token: %v", err), fmt.Sprintf("invalid access token: %v", err), http.StatusUnauthorized)
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		ctx := context.WithValue(r.Context(), userIDKey, userID)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func extractToken(r *http.Request) (string, error) {
+	authHeader := r.Header.Get("Authorization")
+
+	if authHeader == "" {
+		return "", errors.New("missing authorization header")
+	}
+
+	parts := strings.Split(authHeader, " ")
+
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return "", errors.New("invalid authorization header format")
+	}
+
+	return parts[1], nil
+}
+
+func validateToken(tokenString string, secret []byte) (string, error) {
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+
+		return secret, nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	if !token.Valid {
+		return "", errors.New("invalid token")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", errors.New("invalid claims")
+	}
+
+	userID, ok := claims["sub"].(string)
+	if !ok {
+		return "", errors.New("invalid user id in token")
+	}
+
+	return userID, nil
+}
+
+func GetUserID(ctx context.Context) (string, bool) {
+	id, ok := ctx.Value(userIDKey).(string)
+	return id, ok
 }
