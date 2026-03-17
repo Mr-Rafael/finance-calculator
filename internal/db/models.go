@@ -18,18 +18,22 @@ type RefreshToken struct {
 }
 
 type Saving struct {
-	ID                  pgtype.UUID
-	UserID              pgtype.UUID
-	Name                string
-	StartingCapital     int32
-	YearlyInterestRate  string
-	InterestRateType    string
-	MonthlyContribution int32
-	DurationYears       int32
-	TaxRate             string
-	YearlyInflationRate pgtype.Text
-	StartDate           pgtype.Timestamptz
-	CreatedAt           pgtype.Timestamptz
+	ID                    pgtype.UUID
+	UserID                pgtype.UUID
+	Name                  string
+	StartingCapital       int32
+	YearlyInterestRate    string
+	InterestRateType      string
+	MonthlyContribution   int32
+	DurationYears         int32
+	TaxRate               string
+	YearlyInflationRate   pgtype.Text
+	StartDate             pgtype.Timestamptz
+	MonthlyInterestRate   string
+	TotalInterestEarnings int32
+	RateOfReturn          string
+	InflationAdjustedRor  string
+	CreatedAt             pgtype.Timestamptz
 }
 
 type SavingsState struct {

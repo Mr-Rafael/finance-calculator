@@ -35,7 +35,7 @@ func (cfg *ApiConfig) AuthMiddleware(next http.Handler) http.Handler {
 
 		token, err := extractToken(r)
 		if err != nil {
-			respondWithError(w, fmt.Sprintf("failed to extract acces token: %v"), fmt.Sprintf("failed to extract acces token: %v"), http.StatusUnauthorized)
+			respondWithError(w, fmt.Sprintf("failed to extract acces token: %v", err), fmt.Sprintf("failed to extract acces token: %v", err), http.StatusUnauthorized)
 			return
 		}
 

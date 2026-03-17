@@ -21,23 +21,31 @@ INSERT INTO savings (user_id,
     duration_years,
     tax_rate,
     yearly_inflation_rate,
-    start_date
+    start_date,
+    monthly_interest_rate,
+    total_interest_earnings,
+    rate_of_return,
+    inflation_adjusted_ror
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING id, user_id, name, starting_capital, yearly_interest_rate, interest_rate_type, monthly_contribution, duration_years, tax_rate, yearly_inflation_rate, start_date, created_at
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+RETURNING id, user_id, name, starting_capital, yearly_interest_rate, interest_rate_type, monthly_contribution, duration_years, tax_rate, yearly_inflation_rate, start_date, monthly_interest_rate, total_interest_earnings, rate_of_return, inflation_adjusted_ror, created_at
 `
 
 type CreateSavingsParams struct {
-	UserID              pgtype.UUID
-	Name                string
-	StartingCapital     int32
-	YearlyInterestRate  string
-	InterestRateType    string
-	MonthlyContribution int32
-	DurationYears       int32
-	TaxRate             string
-	YearlyInflationRate pgtype.Text
-	StartDate           pgtype.Timestamptz
+	UserID                pgtype.UUID
+	Name                  string
+	StartingCapital       int32
+	YearlyInterestRate    string
+	InterestRateType      string
+	MonthlyContribution   int32
+	DurationYears         int32
+	TaxRate               string
+	YearlyInflationRate   pgtype.Text
+	StartDate             pgtype.Timestamptz
+	MonthlyInterestRate   string
+	TotalInterestEarnings int32
+	RateOfReturn          string
+	InflationAdjustedRor  string
 }
 
 func (q *Queries) CreateSavings(ctx context.Context, arg CreateSavingsParams) (Saving, error) {
@@ -52,6 +60,10 @@ func (q *Queries) CreateSavings(ctx context.Context, arg CreateSavingsParams) (S
 		arg.TaxRate,
 		arg.YearlyInflationRate,
 		arg.StartDate,
+		arg.MonthlyInterestRate,
+		arg.TotalInterestEarnings,
+		arg.RateOfReturn,
+		arg.InflationAdjustedRor,
 	)
 	var i Saving
 	err := row.Scan(
@@ -66,13 +78,17 @@ func (q *Queries) CreateSavings(ctx context.Context, arg CreateSavingsParams) (S
 		&i.TaxRate,
 		&i.YearlyInflationRate,
 		&i.StartDate,
+		&i.MonthlyInterestRate,
+		&i.TotalInterestEarnings,
+		&i.RateOfReturn,
+		&i.InflationAdjustedRor,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getSavingsByUserID = `-- name: GetSavingsByUserID :many
-SELECT id, user_id, name, starting_capital, yearly_interest_rate, interest_rate_type, monthly_contribution, duration_years, tax_rate, yearly_inflation_rate, start_date, created_at FROM savings
+SELECT id, user_id, name, starting_capital, yearly_interest_rate, interest_rate_type, monthly_contribution, duration_years, tax_rate, yearly_inflation_rate, start_date, monthly_interest_rate, total_interest_earnings, rate_of_return, inflation_adjusted_ror, created_at FROM savings
 WHERE user_id = $1
 `
 
@@ -97,6 +113,10 @@ func (q *Queries) GetSavingsByUserID(ctx context.Context, userID pgtype.UUID) ([
 			&i.TaxRate,
 			&i.YearlyInflationRate,
 			&i.StartDate,
+			&i.MonthlyInterestRate,
+			&i.TotalInterestEarnings,
+			&i.RateOfReturn,
+			&i.InflationAdjustedRor,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err

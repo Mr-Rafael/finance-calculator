@@ -11,6 +11,10 @@ CREATE TABLE savings (
     tax_rate TEXT NOT NULL,
     yearly_inflation_rate TEXT,
     start_date TIMESTAMPTZ NOT NULL,
+    monthly_interest_rate TEXT NOT NULL,
+    total_interest_earnings INT NOT NULL,
+    rate_of_return TEXT NOT NULL,
+    inflation_adjusted_ror TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 

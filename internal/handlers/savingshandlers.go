@@ -52,15 +52,17 @@ func (cfg *ApiConfig) HandlerSavingsSavePost(writer http.ResponseWriter, request
 		return
 	}
 
-	if err != nil {
-		respondWithError(writer, "Invalid User ID", "Invalid User ID.", http.StatusBadRequest)
-		return
-	}
 	startDate, err := time.Parse("2006-01-02", reqParams.StartDate)
 	if err != nil {
 		respondWithError(writer, fmt.Sprintf("Invalid start date: %v", err), fmt.Sprintf("Invalid start date '%v'", reqParams.StartDate), http.StatusBadRequest)
 		return
 	}
+	savingsPlan, err := calculator.CalculateSavingsPlan(saveReqToCalcReq(reqParams))
+	if err != nil {
+		respondWithError(writer, fmt.Sprintf("Error calculating savings plan: %v", err), fmt.Sprintf("Error calculating savings plan: %v", err), http.StatusInternalServerError)
+		return
+	}
+
 	queryParams := db.CreateSavingsParams{UserID: userID,
 		Name:                reqParams.Name,
 		StartingCapital:     int32(reqParams.StartingCapital),
@@ -77,6 +79,10 @@ func (cfg *ApiConfig) HandlerSavingsSavePost(writer http.ResponseWriter, request
 			Time:  startDate,
 			Valid: true,
 		},
+		MonthlyInterestRate:   savingsPlan.MonthlyInterestRate,
+		TotalInterestEarnings: int32(savingsPlan.TotalInterestEarnings),
+		RateOfReturn:          savingsPlan.RateOfReturn,
+		InflationAdjustedRor:  savingsPlan.InflationAdjustedROR,
 	}
 	queryResult, err := cfg.Queries.CreateSavings(context.Background(), queryParams)
 	if err != nil {
@@ -87,7 +93,7 @@ func (cfg *ApiConfig) HandlerSavingsSavePost(writer http.ResponseWriter, request
 	respondWithJSON(writer, queryResult, http.StatusOK)
 }
 
-func saveRequestToCalculateRequest(originalRequest models.SavingsSaveRequestParams) models.SavingsRequestParams {
+func saveReqToCalcReq(originalRequest models.SavingsSaveRequestParams) models.SavingsRequestParams {
 	savingsRequest := models.SavingsRequestParams{
 		StartingCapital:     originalRequest.StartingCapital,
 		YearlyInterestRate:  originalRequest.YearlyInterestRate,
