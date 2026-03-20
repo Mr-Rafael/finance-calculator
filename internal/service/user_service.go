@@ -27,8 +27,8 @@ type User struct {
 	CreatedAt pgtype.Timestamp
 }
 
-func (s *UserService) NewUserService(repo *repository.UsersRepo) {
-	s.repo = repo
+func NewUserService(repo *repository.UsersRepo) UserService {
+	return UserService{repo: repo}
 }
 
 func (s *UserService) RegisterUser(ctx context.Context, input RegisterUserInput) (User, error) {

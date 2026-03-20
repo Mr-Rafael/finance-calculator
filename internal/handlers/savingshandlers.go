@@ -9,14 +9,14 @@ import (
 
 	"github.com/Mr-Rafael/finance-calculator/internal/calculator"
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
-	"github.com/Mr-Rafael/finance-calculator/internal/models"
+	"github.com/Mr-Rafael/finance-calculator/internal/dto"
 	"github.com/Mr-Rafael/finance-calculator/internal/utils"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func (cfg *ApiConfig) HandlerSavingsCalculatePost(writer http.ResponseWriter, request *http.Request) {
 	decoder := json.NewDecoder(request.Body)
-	reqParams := models.SavingsRequestParams{}
+	reqParams := dto.SavingsRequestParams{}
 	err := decoder.Decode(&reqParams)
 	if err != nil {
 		respondWithErrorCode(writer, "received bad savings request", http.StatusBadRequest)
@@ -34,7 +34,7 @@ func (cfg *ApiConfig) HandlerSavingsCalculatePost(writer http.ResponseWriter, re
 
 func (cfg *ApiConfig) HandlerSavingsSavePost(writer http.ResponseWriter, request *http.Request) {
 	decoder := json.NewDecoder(request.Body)
-	reqParams := models.SavingsSaveRequestParams{}
+	reqParams := dto.SavingsSaveRequestParams{}
 	userIDString, ok := GetUserID(request.Context())
 	if !ok {
 		respondWithErrorCode(writer, "failed to extract used ID from access token.", http.StatusUnauthorized)
@@ -93,8 +93,8 @@ func (cfg *ApiConfig) HandlerSavingsSavePost(writer http.ResponseWriter, request
 	respondWithJSON(writer, queryResult, http.StatusOK)
 }
 
-func saveReqToCalcReq(originalRequest models.SavingsSaveRequestParams) models.SavingsRequestParams {
-	savingsRequest := models.SavingsRequestParams{
+func saveReqToCalcReq(originalRequest dto.SavingsSaveRequestParams) dto.SavingsRequestParams {
+	savingsRequest := dto.SavingsRequestParams{
 		StartingCapital:     originalRequest.StartingCapital,
 		YearlyInterestRate:  originalRequest.YearlyInterestRate,
 		InterestRateType:    originalRequest.InterestRateType,

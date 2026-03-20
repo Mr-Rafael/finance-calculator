@@ -11,6 +11,10 @@ type SavingsRepo struct {
 	queries *db.Queries
 }
 
+func NewSavingsRepo(queries *db.Queries) SavingsRepo {
+	return SavingsRepo{queries: queries}
+}
+
 func (r *SavingsRepo) CreateSavings(ctx context.Context, params db.CreateSavingsParams) (db.Saving, error) {
 	return r.queries.CreateSavings(ctx, params)
 }

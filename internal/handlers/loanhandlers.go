@@ -6,12 +6,12 @@ import (
 	"net/http"
 
 	"github.com/Mr-Rafael/finance-calculator/internal/calculator"
-	"github.com/Mr-Rafael/finance-calculator/internal/models"
+	"github.com/Mr-Rafael/finance-calculator/internal/dto"
 )
 
 func (cfg *ApiConfig) HandlerLoansCalculatePost(writer http.ResponseWriter, request *http.Request) {
 	decoder := json.NewDecoder(request.Body)
-	reqParams := models.LoanRequestParams{}
+	reqParams := dto.LoanRequestParams{}
 	err := decoder.Decode(&reqParams)
 	if err != nil {
 		respondWithErrorCode(writer, "received bad savings request", http.StatusBadRequest)

@@ -11,6 +11,10 @@ type AuthRepo struct {
 	queries *db.Queries
 }
 
+func NewAuthRepo(queries *db.Queries) AuthRepo {
+	return AuthRepo{queries: queries}
+}
+
 func (r *AuthRepo) CreateUser(ctx context.Context, params db.CreateRefreshTokenParams) (db.RefreshToken, error) {
 	return r.queries.CreateRefreshToken(ctx, params)
 }

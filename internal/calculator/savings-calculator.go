@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Mr-Rafael/finance-calculator/internal/models"
+	"github.com/Mr-Rafael/finance-calculator/internal/dto"
 	"github.com/shopspring/decimal"
 )
 
@@ -30,7 +30,7 @@ type SavingsInfo struct {
 	startDate           time.Time
 }
 
-func getSavingsInfoFromRequest(request models.SavingsRequestParams) (SavingsInfo, error) {
+func getSavingsInfoFromRequest(request dto.SavingsRequestParams) (SavingsInfo, error) {
 	info := SavingsInfo{}
 	aHundred := decimal.NewFromInt(100)
 
@@ -83,13 +83,13 @@ func getSavingsInfoFromRequest(request models.SavingsRequestParams) (SavingsInfo
 	return info, nil
 }
 
-func CalculateSavingsPlan(info models.SavingsRequestParams) (models.SavingsPlan, error) {
+func CalculateSavingsPlan(info dto.SavingsRequestParams) (dto.SavingsPlan, error) {
 	savingsInfo, err := getSavingsInfoFromRequest(info)
 	if err != nil {
-		return models.SavingsPlan{}, err
+		return dto.SavingsPlan{}, err
 	}
 
-	plan := models.SavingsPlan{}
+	plan := dto.SavingsPlan{}
 	currentCapital := savingsInfo.startingCapital
 	totalEarnings := decimal.NewFromInt(0)
 
@@ -98,7 +98,7 @@ func CalculateSavingsPlan(info models.SavingsRequestParams) (models.SavingsPlan,
 		currentTax := currentInterest.Mul(savingsInfo.tax)
 		totalEarnings = totalEarnings.Add(currentInterest).Sub(currentTax)
 		currentCapital = currentCapital.Add(currentInterest).Add(savingsInfo.monthlyContribution).Sub(currentTax)
-		currentStatus := models.SavingsStatus{
+		currentStatus := dto.SavingsStatus{
 			Date:         savingsInfo.startDate.AddDate(0, i, 0),
 			Interest:     int(currentInterest.Round(0).IntPart()),
 			Tax:          int(currentTax.Round(0).IntPart()),

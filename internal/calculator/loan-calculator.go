@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Mr-Rafael/finance-calculator/internal/models"
+	"github.com/Mr-Rafael/finance-calculator/internal/dto"
 	"github.com/shopspring/decimal"
 )
 
@@ -26,7 +26,7 @@ type LoanInfo struct {
 	startDate           time.Time
 }
 
-func getLoanInfoFromRequest(request models.LoanRequestParams) (LoanInfo, error) {
+func getLoanInfoFromRequest(request dto.LoanRequestParams) (LoanInfo, error) {
 	info := LoanInfo{}
 	aHundred := decimal.NewFromInt(100)
 
@@ -63,13 +63,13 @@ func getLoanInfoFromRequest(request models.LoanRequestParams) (LoanInfo, error) 
 	return info, nil
 }
 
-func CalculateLoanPaymentPlan(info models.LoanRequestParams) (models.LoanPaymentPlan, error) {
+func CalculateLoanPaymentPlan(info dto.LoanRequestParams) (dto.LoanPaymentPlan, error) {
 	loanInfo, err := getLoanInfoFromRequest(info)
 	if err != nil {
-		return models.LoanPaymentPlan{}, err
+		return dto.LoanPaymentPlan{}, err
 	}
 
-	plan := models.LoanPaymentPlan{}
+	plan := dto.LoanPaymentPlan{}
 	currentPrincipal := loanInfo.startingPrincipal
 	totalPaid := decimal.NewFromInt(0)
 	totalExpenditure := decimal.NewFromInt(0)
@@ -77,7 +77,7 @@ func CalculateLoanPaymentPlan(info models.LoanRequestParams) (models.LoanPayment
 
 	isPaymentEnough, minPayment := loanInfo.isPaymentEnough()
 	if !isPaymentEnough {
-		return models.LoanPaymentPlan{}, fmt.Errorf("entered payment amount does not cover the first month's interest and expenditures (%v). please enter a higher payment amount",
+		return dto.LoanPaymentPlan{}, fmt.Errorf("entered payment amount does not cover the first month's interest and expenditures (%v). please enter a higher payment amount",
 			minPayment.Div(decimal.NewFromInt(100)).Round(2).IntPart())
 	}
 
@@ -96,7 +96,7 @@ func CalculateLoanPaymentPlan(info models.LoanRequestParams) (models.LoanPayment
 		}
 		totalPaid = totalPaid.Add(currentPayment)
 		i++
-		currentStatus := models.LoanStatus{
+		currentStatus := dto.LoanStatus{
 			Date:          loanInfo.startDate.AddDate(0, i, 0),
 			Principal:     int(currentPrincipal.Round(0).IntPart()),
 			Interest:      int(currentInterest.Round(0).IntPart()),
@@ -107,7 +107,7 @@ func CalculateLoanPaymentPlan(info models.LoanRequestParams) (models.LoanPayment
 		plan.Plan = append(plan.Plan, currentStatus)
 	}
 	if currentPrincipal.GreaterThan(decimal.Zero) {
-		return models.LoanPaymentPlan{}, fmt.Errorf("loan term surpasses the accepted limit (%v years), with a remaining %v principal. please enter a higher monthly payment.\n",
+		return dto.LoanPaymentPlan{}, fmt.Errorf("loan term surpasses the accepted limit (%v years), with a remaining %v principal. please enter a higher monthly payment.\n",
 			maxPaymentYears,
 			currentPrincipal.Round(0).IntPart())
 	}

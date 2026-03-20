@@ -1,4 +1,4 @@
-package models
+package dto
 
 type UserLoginRequestParams struct {
 	Email    string `json:"email"`

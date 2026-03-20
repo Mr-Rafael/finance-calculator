@@ -10,14 +10,14 @@ import (
 
 	"github.com/Mr-Rafael/finance-calculator/internal/auth"
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
-	"github.com/Mr-Rafael/finance-calculator/internal/models"
+	"github.com/Mr-Rafael/finance-calculator/internal/dto"
 	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func (cfg *ApiConfig) HandlerUsersLogin(writer http.ResponseWriter, request *http.Request) {
 	decoder := json.NewDecoder(request.Body)
-	reqParams := models.UserLoginRequestParams{}
+	reqParams := dto.UserLoginRequestParams{}
 	err := decoder.Decode(&reqParams)
 	if err != nil {
 		respondWithErrorCode(writer, fmt.Sprintf("received bad user creation request: %v", err), http.StatusBadRequest)
@@ -74,7 +74,7 @@ func (cfg *ApiConfig) HandlerUsersLogin(writer http.ResponseWriter, request *htt
 		MaxAge:   60 * 60 * 24 * 7,
 	})
 
-	respondWithJSON(writer, models.UserLoginResponseParams{
+	respondWithJSON(writer, dto.UserLoginResponseParams{
 		ID:          user.ID.String(),
 		Email:       user.Email,
 		Username:    user.Username,
@@ -108,7 +108,7 @@ func (cfg *ApiConfig) HandlerRefresh(writer http.ResponseWriter, request *http.R
 		respondWithError(writer, fmt.Sprintf("Error generating access token: %v", err), "There was an error generating access token.", http.StatusInternalServerError)
 	}
 
-	respondWithJSON(writer, models.RefreshResponseParams{
+	respondWithJSON(writer, dto.RefreshResponseParams{
 		AccessToken: accessToken,
 	}, http.StatusOK)
 }

@@ -8,13 +8,13 @@ import (
 	"time"
 
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
-	"github.com/Mr-Rafael/finance-calculator/internal/models"
+	"github.com/Mr-Rafael/finance-calculator/internal/dto"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func (cfg *ApiConfig) HandlerUsersCreate(writer http.ResponseWriter, request *http.Request) {
 	decoder := json.NewDecoder(request.Body)
-	reqParams := models.UserCreateRequestParams{}
+	reqParams := dto.UserCreateRequestParams{}
 	err := decoder.Decode(&reqParams)
 	if err != nil {
 		respondWithErrorCode(writer, fmt.Sprintf("received bad user creation request: %v", err), http.StatusBadRequest)
@@ -31,7 +31,7 @@ func (cfg *ApiConfig) HandlerUsersCreate(writer http.ResponseWriter, request *ht
 		respondWithError(writer, fmt.Sprintf("failed to save user to database: %v", err), fmt.Sprintf("database error creating the user: %v", err), http.StatusInternalServerError)
 	}
 
-	respondWithJSON(writer, models.UserCreateResponse{
+	respondWithJSON(writer, dto.UserCreateResponse{
 		ID:        user.ID.String(),
 		Email:     user.Email,
 		Username:  user.Username,
