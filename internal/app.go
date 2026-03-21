@@ -9,7 +9,6 @@ import (
 
 	"github.com/Mr-Rafael/finance-calculator/internal/api"
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
-	"github.com/Mr-Rafael/finance-calculator/internal/handlers"
 	"github.com/Mr-Rafael/finance-calculator/internal/repository"
 	"github.com/Mr-Rafael/finance-calculator/internal/service"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -30,10 +29,8 @@ func New() *App {
 		fmt.Printf("Error reading .env: %v", err)
 		return &App{}
 	}
-	var config handlers.ApiConfig
-	config.FileserverHits.Store(0)
-	config.AccessSecret = os.Getenv("ACCESS_SECRET")
-	config.RefreshSecret = os.Getenv("REFRESH_SECRET")
+	accessSecret := os.Getenv("ACCESS_SECRET")
+	refreshSecret := os.Getenv("REFRESH_SECRET")
 
 	// database
 	dbURL := os.Getenv("POSTGRES_CONNECTION_STRING")
@@ -50,16 +47,24 @@ func New() *App {
 
 	// repos
 	usersRepo := repository.NewUsersRepo(queries)
+	authRepo := repository.NewAuthRepo(queries)
 
 	// services
 	userService := service.NewUserService(&usersRepo)
+	authService := service.NewAuthService(&authRepo, &usersRepo, accessSecret, refreshSecret)
 
 	// handlers
+	adminHandler := api.NewAdminHandler()
 	userHandler := api.NewUsersHandler(userService)
+	authHandler := api.NewAuthHandler(authService)
+
+	// middlewares
 
 	// mux
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /api/healthz", adminHandler.HandlerHealthZ)
 	mux.HandleFunc("POST /app/users/create", userHandler.CreateUser)
+	mux.HandleFunc("POST /app/login", authHandler.Login)
 
 	return &App{
 		Handler: mux,

@@ -7,7 +7,7 @@ import (
 	"github.com/Mr-Rafael/finance-calculator/internal/service"
 )
 
-func ToCreateUserParams(reqParams dto.UserCreateRequestParams) service.RegisterUserInput {
+func ToCreateUserInput(reqParams dto.UserCreateRequestParams) service.RegisterUserInput {
 	return service.RegisterUserInput{
 		Email:    reqParams.Email,
 		Password: reqParams.Password,

@@ -27,7 +27,7 @@ func (handler *UsersHandler) CreateUser(writer http.ResponseWriter, request *htt
 		respondWithError(writer, fmt.Sprintf("bad create request: %v", err), fmt.Sprintf("received bad user creation request: %v", err), http.StatusBadRequest)
 		return
 	}
-	result, err := handler.userService.RegisterUser(context.Background(), mapper.ToCreateUserParams(reqParams))
+	result, err := handler.userService.RegisterUser(context.Background(), mapper.ToCreateUserInput(reqParams))
 	if err != nil {
 		respondWithError(writer, fmt.Sprintf("error creating the user: %v", err), fmt.Sprintf("error creating the user: %v", err), http.StatusInternalServerError)
 		return

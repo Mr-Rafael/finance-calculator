@@ -32,15 +32,10 @@ func NewUserService(repo *repository.UsersRepo) UserService {
 }
 
 func (s *UserService) RegisterUser(ctx context.Context, input RegisterUserInput) (User, error) {
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return User{}, fmt.Errorf("failed to generate password hash: %v", err)
-	}
 
-	params := db.CreateUserParams{
-		Email:        input.Email,
-		PasswordHash: string(passwordHash),
-		Username:     input.Username,
+	params, err := ToUserCreateParams(input)
+	if err != nil {
+		return User{}, err
 	}
 
 	user, err := s.repo.CreateUser(ctx, params)
@@ -58,4 +53,19 @@ func ToUserModel(dbUser db.User) User {
 		Username:  dbUser.Username,
 		CreatedAt: dbUser.CreatedAt,
 	}
+}
+
+func ToUserCreateParams(input RegisterUserInput) (db.CreateUserParams, error) {
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return db.CreateUserParams{}, fmt.Errorf("failed to generate password hash: %v", err)
+	}
+
+	params := db.CreateUserParams{
+		Email:        input.Email,
+		PasswordHash: string(passwordHash),
+		Username:     input.Username,
+	}
+
+	return params, nil
 }
