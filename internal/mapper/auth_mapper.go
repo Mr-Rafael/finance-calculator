@@ -20,3 +20,15 @@ func ToLoginResponse(loginInfo service.LoginInfo) dto.UserLoginResponseParams {
 		AccessToken: loginInfo.AccessToken,
 	}
 }
+
+func ToRefreshInput(refreshToken string) service.RefreshInput {
+	return service.RefreshInput{
+		RefreshToken: refreshToken,
+	}
+}
+
+func ToRefreshResponse(refreshInfo service.RefreshInfo) dto.RefreshResponseParams {
+	return dto.RefreshResponseParams{
+		AccessToken: refreshInfo.AccessToken,
+	}
+}

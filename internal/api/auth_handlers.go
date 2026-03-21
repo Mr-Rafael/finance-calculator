@@ -45,3 +45,18 @@ func (handler *AuthHandler) Login(writer http.ResponseWriter, request *http.Requ
 
 	respondWithJSON(writer, mapper.ToLoginResponse(result), http.StatusOK)
 }
+
+func (handler *AuthHandler) Refresh(writer http.ResponseWriter, request *http.Request) {
+	cookie, err := request.Cookie("refresh_token")
+	if err != nil {
+		respondWithError(writer, "request is missing refresh token", "missing refresh token", http.StatusUnauthorized)
+		return
+	}
+
+	result, err := handler.authService.Refresh(context.Background(), (mapper.ToRefreshInput(cookie.Value)))
+	if err != nil {
+		respondWithErrorCode(writer, fmt.Sprintf("Error refreshing token: %v", err), http.StatusUnauthorized)
+	}
+
+	respondWithJSON(writer, mapper.ToRefreshResponse(result), http.StatusOK)
+}

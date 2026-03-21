@@ -31,9 +31,9 @@ func New() *App {
 	}
 	accessSecret := os.Getenv("ACCESS_SECRET")
 	refreshSecret := os.Getenv("REFRESH_SECRET")
+	dbURL := os.Getenv("POSTGRES_CONNECTION_STRING")
 
 	// database
-	dbURL := os.Getenv("POSTGRES_CONNECTION_STRING")
 	if dbURL == "" {
 		log.Fatal("DB_URL not set")
 	}
@@ -65,6 +65,7 @@ func New() *App {
 	mux.HandleFunc("GET /api/healthz", adminHandler.HandlerHealthZ)
 	mux.HandleFunc("POST /app/users/create", userHandler.CreateUser)
 	mux.HandleFunc("POST /app/login", authHandler.Login)
+	mux.HandleFunc("POST /app/refresh", authHandler.Refresh)
 
 	return &App{
 		Handler: mux,

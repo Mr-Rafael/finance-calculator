@@ -33,6 +33,14 @@ type LoginInfo struct {
 	RefreshToken string
 }
 
+type RefreshInput struct {
+	RefreshToken string
+}
+
+type RefreshInfo struct {
+	AccessToken string
+}
+
 func NewAuthService(authRepo *repository.AuthRepo, usersRepo *repository.UsersRepo, accessSecret string, refreshSecret string) AuthService {
 	return AuthService{
 		authRepo:      authRepo,
@@ -62,7 +70,7 @@ func (s *AuthService) Login(ctx context.Context, input LoginInput) (LoginInfo, e
 	refTokenHash := fmt.Sprintf("%x", sha256.Sum256([]byte(refreshToken)))
 
 	createParams := ToRefreshTokenCreateParams(userInfo.ID, refTokenHash, expDate)
-	_, err = s.authRepo.CreateRefreshToken(context.Background(), createParams)
+	_, err = s.authRepo.CreateRefreshToken(ctx, createParams)
 	if err != nil {
 		return LoginInfo{}, fmt.Errorf("error storing the refresh token: %v", err)
 	}
@@ -74,6 +82,31 @@ func (s *AuthService) Login(ctx context.Context, input LoginInput) (LoginInfo, e
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
+}
+
+func (s *AuthService) Refresh(ctx context.Context, input RefreshInput) (RefreshInfo, error) {
+
+	refreshTokenHash := fmt.Sprintf("%x", sha256.Sum256([]byte(input.RefreshToken)))
+
+	tokenData, err := s.authRepo.GetTokenByHash(ctx, refreshTokenHash)
+	if err != nil {
+		return RefreshInfo{}, fmt.Errorf("failed to find refresh token for user '%v' in database: %v", tokenData.UserID, err)
+	}
+
+	if tokenData.Revoked.Bool {
+		return RefreshInfo{}, fmt.Errorf("attempt to refresh with revoked token for user: %v", tokenData.UserID)
+	}
+
+	if tokenData.ExpiresAt.Time.Before(time.Now()) {
+		return RefreshInfo{}, fmt.Errorf("refresh attempt with expired token.")
+	}
+
+	accessToken, err := auth.GenerateAccessToken(tokenData.ID.String(), s.accessSecret)
+	if err != nil {
+		return RefreshInfo{}, fmt.Errorf("error generating access token: %v", err)
+	}
+
+	return RefreshInfo{AccessToken: accessToken}, nil
 }
 
 func ToRefreshTokenCreateParams(user pgtype.UUID, tokenHash string, expDate time.Time) db.CreateRefreshTokenParams {
