@@ -3,12 +3,14 @@ package service
 import (
 	"context"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/Mr-Rafael/finance-calculator/internal/auth"
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/Mr-Rafael/finance-calculator/internal/repository"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -41,13 +43,45 @@ type RefreshInfo struct {
 	AccessToken string
 }
 
-func NewAuthService(authRepo *repository.AuthRepo, usersRepo *repository.UsersRepo, accessSecret string, refreshSecret string) AuthService {
-	return AuthService{
+func NewAuthService(authRepo *repository.AuthRepo, usersRepo *repository.UsersRepo, accessSecret string, refreshSecret string) *AuthService {
+	return &AuthService{
 		authRepo:      authRepo,
 		usersRepo:     usersRepo,
 		accessSecret:  accessSecret,
 		refreshSecret: refreshSecret,
 	}
+}
+
+func (s *AuthService) ValidateAccessToken(tokenString string) (string, error) {
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+
+		return []byte(s.accessSecret), nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	if !token.Valid {
+		return "", errors.New("invalid token")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", errors.New("invalid claims")
+	}
+
+	userID, ok := claims["sub"].(string)
+	if !ok {
+		return "", errors.New("invalid user id in token")
+	}
+
+	return userID, nil
 }
 
 func (s *AuthService) Login(ctx context.Context, input LoginInput) (LoginInfo, error) {

@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/Mr-Rafael/finance-calculator/internal/service"
 )
 
 type contextKey string
@@ -16,12 +16,12 @@ type contextKey string
 const userIDKey contextKey = "userID"
 
 type AuthMiddleware struct {
-	AccessSecret string
+	AuthService *service.AuthService
 }
 
-func NewAuthMiddleware(accessSecret string) *AuthMiddleware {
+func NewAuthMiddleware(service *service.AuthService) *AuthMiddleware {
 	return &AuthMiddleware{
-		AccessSecret: accessSecret,
+		AuthService: service,
 	}
 }
 
@@ -41,7 +41,7 @@ func withCORS(next http.Handler) http.Handler {
 	})
 }
 
-func (amw *AuthMiddleware) Auth(next http.Handler) http.Handler {
+func (amw *AuthMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		token, err := extractToken(r)
@@ -50,7 +50,7 @@ func (amw *AuthMiddleware) Auth(next http.Handler) http.Handler {
 			return
 		}
 
-		userID, err := validateToken(token, []byte(amw.AccessSecret))
+		userID, err := amw.AuthService.ValidateAccessToken(token)
 		if err != nil {
 			respondWithError(w, fmt.Sprintf("invalid access token: %v", err), fmt.Sprintf("invalid access token: %v", err), http.StatusUnauthorized)
 			return
@@ -76,38 +76,6 @@ func extractToken(r *http.Request) (string, error) {
 	}
 
 	return parts[1], nil
-}
-
-func validateToken(tokenString string, secret []byte) (string, error) {
-
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("unexpected signing method")
-		}
-
-		return secret, nil
-	})
-
-	if err != nil {
-		return "", err
-	}
-
-	if !token.Valid {
-		return "", errors.New("invalid token")
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return "", errors.New("invalid claims")
-	}
-
-	userID, ok := claims["sub"].(string)
-	if !ok {
-		return "", errors.New("invalid user id in token")
-	}
-
-	return userID, nil
 }
 
 func GetUserID(ctx context.Context) (string, bool) {

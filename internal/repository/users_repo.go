@@ -11,8 +11,8 @@ type UsersRepo struct {
 	queries *db.Queries
 }
 
-func NewUsersRepo(queries *db.Queries) UsersRepo {
-	return UsersRepo{queries: queries}
+func NewUsersRepo(queries *db.Queries) *UsersRepo {
+	return &UsersRepo{queries: queries}
 }
 
 func (r *UsersRepo) CreateUser(ctx context.Context, params db.CreateUserParams) (db.User, error) {

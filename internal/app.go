@@ -48,17 +48,21 @@ func New() *App {
 	// repos
 	usersRepo := repository.NewUsersRepo(queries)
 	authRepo := repository.NewAuthRepo(queries)
+	savingsRepo := repository.NewSavingsRepo(queries)
 
 	// services
-	userService := service.NewUserService(&usersRepo)
-	authService := service.NewAuthService(&authRepo, &usersRepo, accessSecret, refreshSecret)
+	userService := service.NewUserService(usersRepo)
+	authService := service.NewAuthService(authRepo, usersRepo, accessSecret, refreshSecret)
+	savingsService := service.NewSavingsService(savingsRepo)
 
 	// handlers
 	adminHandler := api.NewAdminHandler()
 	userHandler := api.NewUsersHandler(userService)
 	authHandler := api.NewAuthHandler(authService)
+	savingsHandler := api.NewSavingsHandler(savingsService)
 
 	// middlewares
+	authMW := api.NewAuthMiddleware(authService)
 
 	// mux
 	mux := http.NewServeMux()
@@ -66,6 +70,7 @@ func New() *App {
 	mux.HandleFunc("POST /app/users/create", userHandler.CreateUser)
 	mux.HandleFunc("POST /app/login", authHandler.Login)
 	mux.HandleFunc("POST /app/refresh", authHandler.Refresh)
+	mux.Handle("POST /app/savings/calculate", authMW.Handle(http.HandlerFunc(savingsHandler.HandleCalculateSavings)))
 
 	return &App{
 		Handler: mux,

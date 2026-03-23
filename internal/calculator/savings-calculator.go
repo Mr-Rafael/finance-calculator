@@ -83,13 +83,13 @@ func getSavingsInfoFromRequest(request dto.SavingsRequestParams) (SavingsInfo, e
 	return info, nil
 }
 
-func CalculateSavingsPlan(info dto.SavingsRequestParams) (dto.SavingsPlan, error) {
+func CalculateSavingsPlan(info dto.SavingsRequestParams) (dto.SavingsResponseParams, error) {
 	savingsInfo, err := getSavingsInfoFromRequest(info)
 	if err != nil {
-		return dto.SavingsPlan{}, err
+		return dto.SavingsResponseParams{}, err
 	}
 
-	plan := dto.SavingsPlan{}
+	plan := dto.SavingsResponseParams{}
 	currentCapital := savingsInfo.startingCapital
 	totalEarnings := decimal.NewFromInt(0)
 

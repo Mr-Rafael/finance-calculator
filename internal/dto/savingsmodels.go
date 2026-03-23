@@ -13,7 +13,7 @@ type SavingsRequestParams struct {
 	StartDate           string `json:"startDate"`
 }
 
-type SavingsPlan struct {
+type SavingsResponseParams struct {
 	MonthlyInterestRate   string          `json:"monthlyInterestRate"`
 	TotalInterestEarnings int             `json:"totalEarnings"`
 	RateOfReturn          string          `json:"rateOfReturn"`
