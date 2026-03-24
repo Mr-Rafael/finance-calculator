@@ -8,10 +8,10 @@ import (
 func ToSavingsResponse(plan service.SavingsPlan) dto.SavingsResponseParams {
 	response := dto.SavingsResponseParams{}
 
-	response.MonthlyInterestRate = multiplierToPercent(plan.MonthlyInterestRate)
+	response.MonthlyInterestRate = multiplierToPercent(plan.InterestMultiplierM)
 	response.TotalInterestEarnings = int(plan.TotalInterestEarnings.Round(0).IntPart())
-	response.RateOfReturn = multiplierToPercent(plan.RateOfReturn)
-	response.InflationAdjustedROR = multiplierToPercent(plan.InflationAdjustedROR)
+	response.RateOfReturn = plan.RateOfReturn.String()
+	response.InflationAdjustedROR = plan.InflationAdjustedROR.String()
 	for _, status := range plan.Plan {
 		response.Plan = append(response.Plan, dto.SavingsStatus{
 			Date:         status.Date,

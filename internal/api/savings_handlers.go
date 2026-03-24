@@ -32,5 +32,5 @@ func (handler *SavingsHandler) HandleCalculateSavings(writer http.ResponseWriter
 	if err != nil {
 		respondWithError(writer, fmt.Sprintf("Error calculating savings plan: %v", err), fmt.Sprintf("Error calculating savings plan: %v", err), http.StatusInternalServerError)
 	}
-	respondWithJSON(writer, result, http.StatusOK)
+	respondWithJSON(writer, mapper.ToSavingsResponse(result), http.StatusOK)
 }
