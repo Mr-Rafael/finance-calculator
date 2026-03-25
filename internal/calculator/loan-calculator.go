@@ -63,13 +63,13 @@ func getLoanInfoFromRequest(request dto.LoanRequestParams) (LoanInfo, error) {
 	return info, nil
 }
 
-func CalculateLoanPaymentPlan(info dto.LoanRequestParams) (dto.LoanPaymentPlan, error) {
+func CalculateLoanPaymentPlan(info dto.LoanRequestParams) (dto.LoanResponseParams, error) {
 	loanInfo, err := getLoanInfoFromRequest(info)
 	if err != nil {
-		return dto.LoanPaymentPlan{}, err
+		return dto.LoanResponseParams{}, err
 	}
 
-	plan := dto.LoanPaymentPlan{}
+	plan := dto.LoanResponseParams{}
 	currentPrincipal := loanInfo.startingPrincipal
 	totalPaid := decimal.NewFromInt(0)
 	totalExpenditure := decimal.NewFromInt(0)
@@ -77,7 +77,7 @@ func CalculateLoanPaymentPlan(info dto.LoanRequestParams) (dto.LoanPaymentPlan, 
 
 	isPaymentEnough, minPayment := loanInfo.isPaymentEnough()
 	if !isPaymentEnough {
-		return dto.LoanPaymentPlan{}, fmt.Errorf("entered payment amount does not cover the first month's interest and expenditures (%v). please enter a higher payment amount",
+		return dto.LoanResponseParams{}, fmt.Errorf("entered payment amount does not cover the first month's interest and expenditures (%v). please enter a higher payment amount",
 			minPayment.Div(decimal.NewFromInt(100)).Round(2).IntPart())
 	}
 
@@ -107,7 +107,7 @@ func CalculateLoanPaymentPlan(info dto.LoanRequestParams) (dto.LoanPaymentPlan, 
 		plan.Plan = append(plan.Plan, currentStatus)
 	}
 	if currentPrincipal.GreaterThan(decimal.Zero) {
-		return dto.LoanPaymentPlan{}, fmt.Errorf("loan term surpasses the accepted limit (%v years), with a remaining %v principal. please enter a higher monthly payment.\n",
+		return dto.LoanResponseParams{}, fmt.Errorf("loan term surpasses the accepted limit (%v years), with a remaining %v principal. please enter a higher monthly payment.\n",
 			maxPaymentYears,
 			currentPrincipal.Round(0).IntPart())
 	}

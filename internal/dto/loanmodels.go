@@ -10,7 +10,7 @@ type LoanRequestParams struct {
 	StartDate          string `json:"startDate"`
 }
 
-type LoanPaymentPlan struct {
+type LoanResponseParams struct {
 	DurationMonths      int          `json:"durationMonths"`
 	TotalExpenditure    int          `json:"totalExpenditure"`
 	TotalPaid           int          `json:"totalPaid"`
