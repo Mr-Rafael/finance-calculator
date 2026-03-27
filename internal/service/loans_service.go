@@ -31,7 +31,7 @@ type LoanPaymentPlan struct {
 	PaymentM            decimal.Decimal
 	EscrowM             decimal.Decimal
 	Date                time.Time
-	DurationMonths      decimal.Decimal
+	DurationMonths      int
 	TotalExpenditure    decimal.Decimal
 	TotalPaid           decimal.Decimal
 	CostOfCreditPercent decimal.Decimal
@@ -40,11 +40,11 @@ type LoanPaymentPlan struct {
 
 type LoanStatus struct {
 	Date          time.Time
-	Payment       int
-	Interest      int
-	OtherPayments int
-	Paydown       int
-	Principal     int
+	Payment       decimal.Decimal
+	Interest      decimal.Decimal
+	OtherPayments decimal.Decimal
+	Paydown       decimal.Decimal
+	Principal     decimal.Decimal
 }
 
 const minLoanCents = "1"
@@ -62,6 +62,22 @@ func (s *LoansService) GetLoanPaymentPlan(input LoansInput) (LoanPaymentPlan, er
 	if err != nil {
 		return LoanPaymentPlan{}, fmt.Errorf("failed to initialize the payment plan struct: %v", err)
 	}
+
+	i := 0
+	for plan.CurrentPrincipal.Compare(decimal.Zero) == 1 {
+		i++
+		if i > maxPaymentYears*12 {
+			remainder := plan.CurrentPrincipal.Div(decimal.NewFromInt(100)).Round(2).String()
+			return LoanPaymentPlan{}, fmt.Errorf("The payment plan exceeds the year limit (%v years), with a remaining %v to pay", maxPaymentYears, remainder)
+		}
+		payment := plan.passMonth()
+		payment = plan.generateInterest(payment)
+		payment = plan.chargeEscrow(payment)
+		payment = plan.makePayment(payment)
+		plan.Plan = append(plan.Plan, payment)
+	}
+	plan.finalCalculations()
+
 	return plan, nil
 }
 
@@ -74,6 +90,7 @@ func initializePaymentPlan(input LoansInput) (LoanPaymentPlan, error) {
 		return LoanPaymentPlan{}, fmt.Errorf("invalid starting principal: '%v'. the accepted range is 0.01 - 1,000,000,000", startingPrincipal.Div(oneHundred).Round(2))
 	}
 	plan.StartingPrincipal = startingPrincipal
+	plan.CurrentPrincipal = startingPrincipal
 
 	monthlyInterestRate, err := getMonthlyAPRMultiplier(input.YearlyInterestRate)
 	if !stringNumberBetween(input.YearlyInterestRate, minInterestRate, maxInterestRate) {
@@ -102,5 +119,54 @@ func initializePaymentPlan(input LoansInput) (LoanPaymentPlan, error) {
 	}
 	plan.Date = startDate
 
-	return LoanPaymentPlan{}, nil
+	return plan, nil
+}
+
+func (p *LoanPaymentPlan) passMonth() LoanStatus {
+	p.Date = p.Date.AddDate(0, 1, 0)
+	p.DurationMonths += 1
+	return LoanStatus{
+		Date: p.Date,
+	}
+}
+
+func (p *LoanPaymentPlan) generateInterest(s LoanStatus) LoanStatus {
+	interest := p.CurrentPrincipal.Mul(p.InterestMultiplierM)
+	p.CurrentPrincipal = p.CurrentPrincipal.Add(interest)
+	p.TotalExpenditure = p.TotalExpenditure.Add(interest)
+
+	s.Interest = interest
+	return s
+}
+
+func (p *LoanPaymentPlan) chargeEscrow(s LoanStatus) LoanStatus {
+	p.CurrentPrincipal = p.CurrentPrincipal.Add(p.EscrowM)
+	p.TotalExpenditure = p.TotalExpenditure.Add(p.EscrowM)
+
+	s.OtherPayments = p.EscrowM
+	return s
+}
+
+func (p *LoanPaymentPlan) makePayment(s LoanStatus) LoanStatus {
+	paydown := p.PaymentM.Sub(s.Interest).Sub(s.OtherPayments)
+	if p.CurrentPrincipal.Cmp(paydown) == -1 {
+		payment := p.CurrentPrincipal.Add(s.Interest).Add(s.OtherPayments)
+		p.TotalPaid = p.TotalPaid.Add(payment)
+		s.Payment = payment
+		s.Paydown = p.CurrentPrincipal
+		p.CurrentPrincipal = decimal.Zero
+		s.Principal = p.CurrentPrincipal
+	} else {
+		p.TotalPaid = p.TotalPaid.Add(p.PaymentM)
+		s.Payment = p.PaymentM
+		s.Paydown = paydown
+		p.CurrentPrincipal = p.CurrentPrincipal.Sub(paydown)
+		s.Principal = p.CurrentPrincipal
+	}
+
+	return s
+}
+
+func (p *LoanPaymentPlan) finalCalculations() {
+	p.CostOfCreditPercent = p.TotalPaid.Div(p.StartingPrincipal)
 }
