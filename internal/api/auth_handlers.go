@@ -24,7 +24,7 @@ func (handler *AuthHandler) Login(writer http.ResponseWriter, request *http.Requ
 	reqParams := dto.UserLoginRequestParams{}
 	err := decoder.Decode(&reqParams)
 	if err != nil {
-		respondWithErrorCode(writer, fmt.Sprintf("received bad user creation request: %v", err), http.StatusBadRequest)
+		respondWithErrorCode(writer, fmt.Sprintf("received bad login request: %v", err), http.StatusBadRequest)
 		return
 	}
 	result, err := handler.authService.Login(context.Background(), mapper.ToLoginInput(reqParams))

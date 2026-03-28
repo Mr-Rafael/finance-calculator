@@ -1,11 +1,11 @@
 package mapper
 
 import (
+	"github.com/Mr-Rafael/finance-calculator/internal/domain"
 	"github.com/Mr-Rafael/finance-calculator/internal/dto"
-	"github.com/Mr-Rafael/finance-calculator/internal/service"
 )
 
-func ToSavingsResponse(plan service.SavingsPlan) dto.SavingsResponseParams {
+func ToSavingsResponse(plan domain.SavingsPlan) dto.SavingsResponseParams {
 	response := dto.SavingsResponseParams{}
 
 	response.MonthlyInterestRate = multiplierToPercent(plan.InterestMultiplierM)
@@ -25,8 +25,8 @@ func ToSavingsResponse(plan service.SavingsPlan) dto.SavingsResponseParams {
 	return response
 }
 
-func ToSavingsInput(input dto.SavingsRequestParams) service.SavingsInput {
-	savings := service.SavingsInput{
+func ToSavingsInput(input dto.SavingsRequestParams) domain.SavingsInput {
+	savings := domain.SavingsInput{
 		StartingCapital:     input.StartingCapital,
 		YearlyInterestRate:  input.YearlyInterestRate,
 		InterestRateType:    input.InterestRateType,
