@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -15,7 +16,8 @@ func NewAuthRepo(queries *db.Queries) *AuthRepo {
 	return &AuthRepo{queries: queries}
 }
 
-func (r *AuthRepo) CreateRefreshToken(ctx context.Context, params db.CreateRefreshTokenParams) (db.RefreshToken, error) {
+func (r *AuthRepo) CreateRefreshToken(ctx context.Context, userID pgtype.UUID, tokenHash string, expDate time.Time) (db.RefreshToken, error) {
+	params := ToRefreshTokenCreateParams(userID, tokenHash, expDate)
 	return r.queries.CreateRefreshToken(ctx, params)
 }
 
@@ -25,4 +27,19 @@ func (r *AuthRepo) GetTokenByHash(ctx context.Context, hash string) (db.RefreshT
 
 func (r *AuthRepo) RevokeTokenByUserID(ctx context.Context, id pgtype.UUID) error {
 	return r.queries.RevokeTokenByUserID(ctx, id)
+}
+
+func ToRefreshTokenCreateParams(user pgtype.UUID, tokenHash string, expDate time.Time) db.CreateRefreshTokenParams {
+	return db.CreateRefreshTokenParams{
+		UserID:    user,
+		TokenHash: tokenHash,
+		ExpiresAt: pgtype.Timestamptz{
+			Time:  expDate,
+			Valid: true,
+		},
+		Revoked: pgtype.Bool{
+			Bool:  false,
+			Valid: true,
+		},
+	}
 }

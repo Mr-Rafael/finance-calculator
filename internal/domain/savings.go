@@ -90,5 +90,4 @@ func (p *SavingsPlan) FinalCalculations() {
 	p.RateOfReturn = returnRate.Mul(oneHundred).Round(2)
 	totalInflation := p.InflationMultiplierY.Pow(p.DurationMonths.Div(decimal.NewFromInt(12)))
 	p.InflationAdjustedROR = returnRate.Div(totalInflation).Mul(oneHundred).Round(2)
-
 }

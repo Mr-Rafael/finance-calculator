@@ -103,8 +103,7 @@ func (s *AuthService) Login(ctx context.Context, input LoginInput) (LoginInfo, e
 	}
 	refTokenHash := fmt.Sprintf("%x", sha256.Sum256([]byte(refreshToken)))
 
-	createParams := ToRefreshTokenCreateParams(userInfo.ID, refTokenHash, expDate)
-	_, err = s.authRepo.CreateRefreshToken(ctx, createParams)
+	_, err = s.authRepo.CreateRefreshToken(ctx, userInfo.ID, refTokenHash, expDate)
 	if err != nil {
 		return LoginInfo{}, fmt.Errorf("error storing the refresh token: %v", err)
 	}
