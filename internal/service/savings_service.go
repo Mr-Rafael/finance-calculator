@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/Mr-Rafael/finance-calculator/internal/domain"
 	"github.com/Mr-Rafael/finance-calculator/internal/repository"
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
 
@@ -30,11 +32,31 @@ func NewSavingsService(repo *repository.SavingsRepo) *SavingsService {
 }
 
 func (s *SavingsService) GetSavingsPlan(ctx context.Context, input domain.SavingsInput) (domain.SavingsPlan, error) {
-	plan, err := initializeSavingsPlan(input)
+	plan, err := initializeSavingsPlan(input, uuid.Nil, "")
 	if err != nil {
 		return domain.SavingsPlan{}, err
 	}
 
+	plan = calculateSavings(plan)
+
+	return plan, nil
+}
+
+func (s *SavingsService) SaveSavingsPlan(ctx context.Context, input domain.SaveSavingsInput) (db.Saving, error) {
+	plan, err := initializeSavingsPlan(toSavingsInput(input), input.UserID, input.PlanName)
+	if err != nil {
+		return db.Saving{}, err
+	}
+
+	plan = calculateSavings(plan)
+	result, err := s.repo.SaveSavingsPlan(ctx, plan)
+	if err != nil {
+		return db.Saving{}, err
+	}
+	return result, nil
+}
+
+func calculateSavings(plan domain.SavingsPlan) domain.SavingsPlan {
 	for i := 0; i < int(plan.DurationMonths.IntPart()); i++ {
 		state := plan.PassMonth()
 		state = plan.GenerateInterest(state)
@@ -42,13 +64,16 @@ func (s *SavingsService) GetSavingsPlan(ctx context.Context, input domain.Saving
 		plan.Plan = append(plan.Plan, state)
 	}
 	plan.FinalCalculations()
-
-	return plan, nil
+	return plan
 }
 
-func initializeSavingsPlan(input domain.SavingsInput) (domain.SavingsPlan, error) {
+func initializeSavingsPlan(input domain.SavingsInput, userID uuid.UUID, name string) (domain.SavingsPlan, error) {
 	plan := domain.SavingsPlan{}
 	aHundred := decimal.NewFromInt(100)
+
+	plan.OriginalData = input
+	plan.UserID = userID
+	plan.Name = name
 
 	startingCapital := decimal.NewFromInt(int64(input.StartingCapital))
 	if !decimalIsBetween(startingCapital, minStartCapCents, maxStartCapCents) {
@@ -100,4 +125,17 @@ func initializeSavingsPlan(input domain.SavingsInput) (domain.SavingsPlan, error
 	plan.Date = startDate
 
 	return plan, nil
+}
+
+func toSavingsInput(input domain.SaveSavingsInput) domain.SavingsInput {
+	return domain.SavingsInput{
+		StartingCapital:     input.StartingCapital,
+		YearlyInterestRate:  input.YearlyInterestRate,
+		InterestRateType:    input.InterestRateType,
+		MonthlyContribution: input.MonthlyContribution,
+		DurationYears:       input.DurationYears,
+		TaxRate:             input.TaxRate,
+		YearlyInflationRate: input.YearlyInflationRate,
+		StartDate:           input.StartDate,
+	}
 }

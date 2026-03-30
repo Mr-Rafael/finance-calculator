@@ -21,6 +21,16 @@ type SavingsResponseParams struct {
 	Plan                  []SavingsStatus `json:"plan"`
 }
 
+type SavingsSaveResponseParams struct {
+	Name                  string          `json:"name"`
+	ID                    string          `json:"id"`
+	MonthlyInterestRate   string          `json:"monthlyInterestRate"`
+	TotalInterestEarnings int             `json:"totalEarnings"`
+	RateOfReturn          string          `json:"rateOfReturn"`
+	InflationAdjustedROR  string          `json:"inflationAdjustedROR"`
+	Plan                  []SavingsStatus `json:"plan"`
+}
+
 type SavingsStatus struct {
 	Date         time.Time `json:"date"`
 	Interest     int       `json:"interest"`

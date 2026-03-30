@@ -1,8 +1,10 @@
 package mapper
 
 import (
+	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/Mr-Rafael/finance-calculator/internal/domain"
 	"github.com/Mr-Rafael/finance-calculator/internal/dto"
+	"github.com/google/uuid"
 )
 
 func ToSavingsResponse(plan domain.SavingsPlan) dto.SavingsResponseParams {
@@ -25,6 +27,17 @@ func ToSavingsResponse(plan domain.SavingsPlan) dto.SavingsResponseParams {
 	return response
 }
 
+func ToSavingsSaveResponse(savings db.Saving) dto.SavingsSaveResponseParams {
+	return dto.SavingsSaveResponseParams{
+		Name:                  savings.Name,
+		ID:                    savings.ID.String(),
+		MonthlyInterestRate:   savings.MonthlyInterestRate,
+		TotalInterestEarnings: int(savings.TotalInterestEarnings),
+		RateOfReturn:          savings.RateOfReturn,
+		InflationAdjustedROR:  savings.InflationAdjustedRor,
+	}
+}
+
 func ToSavingsInput(input dto.SavingsRequestParams) domain.SavingsInput {
 	savings := domain.SavingsInput{
 		StartingCapital:     input.StartingCapital,
@@ -37,5 +50,21 @@ func ToSavingsInput(input dto.SavingsRequestParams) domain.SavingsInput {
 		StartDate:           input.StartDate,
 	}
 
+	return savings
+}
+
+func ToSaveSavingsIput(userId uuid.UUID, input dto.SavingsSaveRequestParams) domain.SaveSavingsInput {
+	savings := domain.SaveSavingsInput{
+		UserID:              userId,
+		PlanName:            input.Name,
+		StartingCapital:     input.StartingCapital,
+		YearlyInterestRate:  input.YearlyInterestRate,
+		InterestRateType:    input.InterestRateType,
+		MonthlyContribution: input.MonthlyContribution,
+		DurationYears:       input.DurationYears,
+		TaxRate:             input.TaxRate,
+		YearlyInflationRate: input.YearlyInflationRate,
+		StartDate:           input.StartDate,
+	}
 	return savings
 }

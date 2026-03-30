@@ -32,6 +32,9 @@ type SaveSavingsInput struct {
 }
 
 type SavingsPlan struct {
+	UserID                uuid.UUID
+	Name                  string
+	OriginalData          SavingsInput
 	StartingCapital       decimal.Decimal
 	CurrentCapital        decimal.Decimal
 	MonthlyContribution   decimal.Decimal
