@@ -21,3 +21,6 @@ RETURNING *;
 SELECT * FROM savings
 WHERE user_id = $1;
 
+-- name: GetSavings :one
+SELECT * FROM savings
+WHERE id = $1;

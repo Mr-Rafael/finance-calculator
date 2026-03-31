@@ -87,6 +87,35 @@ func (q *Queries) CreateSavings(ctx context.Context, arg CreateSavingsParams) (S
 	return i, err
 }
 
+const getSavings = `-- name: GetSavings :one
+SELECT id, user_id, name, starting_capital, yearly_interest_rate, interest_rate_type, monthly_contribution, duration_years, tax_rate, yearly_inflation_rate, start_date, monthly_interest_rate, total_interest_earnings, rate_of_return, inflation_adjusted_ror, created_at FROM savings
+WHERE id = $1
+`
+
+func (q *Queries) GetSavings(ctx context.Context, id pgtype.UUID) (Saving, error) {
+	row := q.db.QueryRow(ctx, getSavings, id)
+	var i Saving
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Name,
+		&i.StartingCapital,
+		&i.YearlyInterestRate,
+		&i.InterestRateType,
+		&i.MonthlyContribution,
+		&i.DurationYears,
+		&i.TaxRate,
+		&i.YearlyInflationRate,
+		&i.StartDate,
+		&i.MonthlyInterestRate,
+		&i.TotalInterestEarnings,
+		&i.RateOfReturn,
+		&i.InflationAdjustedRor,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getSavingsByUserID = `-- name: GetSavingsByUserID :many
 SELECT id, user_id, name, starting_capital, yearly_interest_rate, interest_rate_type, monthly_contribution, duration_years, tax_rate, yearly_inflation_rate, start_date, monthly_interest_rate, total_interest_earnings, rate_of_return, inflation_adjusted_ror, created_at FROM savings
 WHERE user_id = $1

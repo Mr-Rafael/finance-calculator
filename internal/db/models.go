@@ -8,6 +8,33 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Loan struct {
+	ID                 pgtype.UUID
+	UserID             pgtype.UUID
+	Name               string
+	StartingPrincipal  int32
+	YearlyInterestRate string
+	MonthlyPayment     int32
+	EscrowPayment      int32
+	StartDate          pgtype.Timestamptz
+	DurationMonths     int32
+	TotalExpenditure   int32
+	TotalPaid          int32
+	CostOfCredit       string
+	CreatedAt          pgtype.Timestamptz
+}
+
+type LoanState struct {
+	ID            pgtype.UUID
+	LoanID        pgtype.UUID
+	Date          pgtype.Timestamptz
+	Payment       int32
+	Interest      int32
+	OtherPayments int32
+	Paydown       int32
+	Principal     int32
+}
+
 type RefreshToken struct {
 	ID        pgtype.UUID
 	UserID    pgtype.UUID
