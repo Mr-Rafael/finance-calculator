@@ -7,6 +7,7 @@ import (
 
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/Mr-Rafael/finance-calculator/internal/domain"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/shopspring/decimal"
 )
@@ -37,6 +38,19 @@ func (r *SavingsRepo) SaveSavingsPlan(ctx context.Context, plan domain.SavingsPl
 		}
 	}
 	return savingsResult, nil
+}
+
+func (r *SavingsRepo) GetSavingsPlansByUser(ctx context.Context, userID uuid.UUID) ([]db.GetSavingsByUserIDRow, error) {
+	queryID := pgtype.UUID{
+		Bytes: userID,
+		Valid: true,
+	}
+
+	result, err := r.queries.GetSavingsByUserID(ctx, queryID)
+	if err != nil {
+		return []db.GetSavingsByUserIDRow{}, fmt.Errorf("failed to fetch user's savings plans: %v", err)
+	}
+	return result, nil
 }
 
 func toSavingsQueryParams(plan domain.SavingsPlan) (db.CreateSavingsParams, error) {

@@ -102,34 +102,26 @@ func (q *Queries) GetLoan(ctx context.Context, id pgtype.UUID) (Loan, error) {
 }
 
 const getLoansByUserID = `-- name: GetLoansByUserID :many
-SELECT id, user_id, name, starting_principal, yearly_interest_rate, monthly_payment, escrow_payment, start_date, duration_months, total_expenditure, total_paid, cost_of_credit, created_at FROM loans
+SELECT id, name, starting_principal FROM loans
 WHERE user_id = $1
 `
 
-func (q *Queries) GetLoansByUserID(ctx context.Context, userID pgtype.UUID) ([]Loan, error) {
+type GetLoansByUserIDRow struct {
+	ID                pgtype.UUID
+	Name              string
+	StartingPrincipal int32
+}
+
+func (q *Queries) GetLoansByUserID(ctx context.Context, userID pgtype.UUID) ([]GetLoansByUserIDRow, error) {
 	rows, err := q.db.Query(ctx, getLoansByUserID, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Loan
+	var items []GetLoansByUserIDRow
 	for rows.Next() {
-		var i Loan
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.Name,
-			&i.StartingPrincipal,
-			&i.YearlyInterestRate,
-			&i.MonthlyPayment,
-			&i.EscrowPayment,
-			&i.StartDate,
-			&i.DurationMonths,
-			&i.TotalExpenditure,
-			&i.TotalPaid,
-			&i.CostOfCredit,
-			&i.CreatedAt,
-		); err != nil {
+		var i GetLoansByUserIDRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.StartingPrincipal); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

@@ -38,6 +38,19 @@ func ToSavingsSaveResponse(savings db.Saving) dto.SavingsSaveResponseParams {
 	}
 }
 
+func ToSavingsListResponse(rows []db.GetSavingsByUserIDRow) dto.SavingsListResponseParams {
+	params := dto.SavingsListResponseParams{}
+	for _, row := range rows {
+		newRow := dto.SavingsInfo{
+			ID:              row.ID.String(),
+			Name:            row.Name,
+			StartingCapital: int(row.StartingCapital),
+		}
+		params.Plans = append(params.Plans, newRow)
+	}
+	return params
+}
+
 func ToSavingsInput(input dto.SavingsRequestParams) domain.SavingsInput {
 	savings := domain.SavingsInput{
 		StartingCapital:     input.StartingCapital,
@@ -53,7 +66,7 @@ func ToSavingsInput(input dto.SavingsRequestParams) domain.SavingsInput {
 	return savings
 }
 
-func ToSaveSavingsIput(userId uuid.UUID, input dto.SavingsSaveRequestParams) domain.SaveSavingsInput {
+func ToSaveSavingsInput(userId uuid.UUID, input dto.SavingsSaveRequestParams) domain.SaveSavingsInput {
 	savings := domain.SaveSavingsInput{
 		UserID:              userId,
 		PlanName:            input.Name,

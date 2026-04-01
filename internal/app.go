@@ -76,6 +76,7 @@ func New() *App {
 	mux.Handle("POST /app/savings/calculate", authMW.Handle(http.HandlerFunc(savingsHandler.HandleCalculateSavings)))
 	mux.Handle("POST /app/loans/calculate", authMW.Handle(http.HandlerFunc(loansHandler.HandleCalculateLoan)))
 	mux.Handle("POST /app/savings/save", authMW.Handle(http.HandlerFunc(savingsHandler.HandleSaveSavings)))
+	mux.Handle("GET /app/savings/list", authMW.Handle(http.HandlerFunc(savingsHandler.HandleListSavings)))
 
 	return &App{
 		Handler: mux,

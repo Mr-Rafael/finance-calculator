@@ -18,7 +18,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 RETURNING *;
 
 -- name: GetSavingsByUserID :many
-SELECT * FROM savings
+SELECT id, name, starting_capital FROM savings
 WHERE user_id = $1;
 
 -- name: GetSavings :one

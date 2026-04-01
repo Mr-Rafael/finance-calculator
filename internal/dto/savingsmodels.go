@@ -21,6 +21,15 @@ type SavingsResponseParams struct {
 	Plan                  []SavingsStatus `json:"plan"`
 }
 
+type SavingsStatus struct {
+	Date         time.Time `json:"date"`
+	Interest     int       `json:"interest"`
+	Tax          int       `json:"tax"`
+	Contribution int       `json:"contribution"`
+	Increase     int       `json:"increase"`
+	Capital      int       `json:"capital"`
+}
+
 type SavingsSaveResponseParams struct {
 	Name                  string          `json:"name"`
 	ID                    string          `json:"id"`
@@ -29,15 +38,6 @@ type SavingsSaveResponseParams struct {
 	RateOfReturn          string          `json:"rateOfReturn"`
 	InflationAdjustedROR  string          `json:"inflationAdjustedROR"`
 	Plan                  []SavingsStatus `json:"plan"`
-}
-
-type SavingsStatus struct {
-	Date         time.Time `json:"date"`
-	Interest     int       `json:"interest"`
-	Tax          int       `json:"tax"`
-	Contribution int       `json:"contribution"`
-	Increase     int       `json:"increase"`
-	Capital      int       `json:"capital"`
 }
 
 type SavingsSaveRequestParams struct {
@@ -50,4 +50,14 @@ type SavingsSaveRequestParams struct {
 	TaxRate             string `json:"taxRate"`
 	YearlyInflationRate string `json:"yearlyInflationRate"`
 	StartDate           string `json:"startDate"`
+}
+
+type SavingsListResponseParams struct {
+	Plans []SavingsInfo `json:"plans"`
+}
+
+type SavingsInfo struct {
+	ID              string `json:"id"`
+	Name            string `json:"name"`
+	StartingCapital int    `json:"starting_capital"`
 }
