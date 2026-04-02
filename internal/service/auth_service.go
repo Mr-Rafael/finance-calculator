@@ -134,7 +134,7 @@ func (s *AuthService) Refresh(ctx context.Context, input RefreshInput) (RefreshI
 		return RefreshInfo{}, fmt.Errorf("refresh attempt with expired token.")
 	}
 
-	accessToken, err := auth.GenerateAccessToken(tokenData.ID.String(), s.accessSecret)
+	accessToken, err := auth.GenerateAccessToken(tokenData.UserID.String(), s.accessSecret)
 	if err != nil {
 		return RefreshInfo{}, fmt.Errorf("error generating access token: %v", err)
 	}

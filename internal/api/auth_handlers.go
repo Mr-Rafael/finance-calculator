@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/Mr-Rafael/finance-calculator/internal/dto"
 	"github.com/Mr-Rafael/finance-calculator/internal/mapper"
@@ -32,12 +33,12 @@ func (handler *AuthHandler) Login(writer http.ResponseWriter, request *http.Requ
 		respondWithErrorCode(writer, fmt.Sprintf("failed login attempt for user '%v': %v", reqParams.Email, err), http.StatusUnauthorized)
 		return
 	}
-
+	secure := os.Getenv("ENV") == "production"
 	http.SetCookie(writer, &http.Cookie{
 		Name:     "refresh_token",
 		Value:    result.RefreshToken,
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   secure,
 		Path:     "/",
 		SameSite: http.SameSiteStrictMode,
 		MaxAge:   60 * 60 * 24 * 7,

@@ -92,6 +92,7 @@ func (handler *SavingsHandler) HandleGetSavings(writer http.ResponseWriter, requ
 	result, err := handler.savingsService.GetSavedSavingsPlan(context.Background(), planUUID, userUUID)
 	if err != nil {
 		respondWithErrorCode(writer, fmt.Sprintf("attempt to fetch plan %v by user %v", planUUID, userUUID), http.StatusUnauthorized)
+		return
 	}
 
 	respondWithJSON(writer, mapper.ToSavingsResponse(result), http.StatusOK)
