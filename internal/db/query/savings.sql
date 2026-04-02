@@ -23,4 +23,4 @@ WHERE user_id = $1;
 
 -- name: GetSavings :one
 SELECT * FROM savings
-WHERE id = $1;
+WHERE id = $1 AND user_id = $2;

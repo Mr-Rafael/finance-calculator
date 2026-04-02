@@ -64,6 +64,14 @@ func (s *SavingsService) GetSavingsPlansByUser(ctx context.Context, input uuid.U
 	return result, nil
 }
 
+func (s *SavingsService) GetSavedSavingsPlan(ctx context.Context, planID uuid.UUID, userID uuid.UUID) (domain.SavingsPlan, error) {
+	result, err := s.repo.GetSavingsPlanByID(ctx, planID, userID)
+	if err != nil {
+		return domain.SavingsPlan{}, err
+	}
+	return result, nil
+}
+
 func calculateSavings(plan domain.SavingsPlan) domain.SavingsPlan {
 	for i := 0; i < int(plan.DurationMonths.IntPart()); i++ {
 		state := plan.PassMonth()

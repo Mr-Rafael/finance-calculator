@@ -12,5 +12,5 @@ RETURNING *;
 
 -- name: GetSavingsStateBySavingsID :many
 SELECT * FROM savings_state
-WHERE savings_id = $1;
-
+WHERE savings_id = $1
+ORDER BY date ASC;

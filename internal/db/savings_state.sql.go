@@ -61,6 +61,7 @@ func (q *Queries) CreateSavingsState(ctx context.Context, arg CreateSavingsState
 const getSavingsStateBySavingsID = `-- name: GetSavingsStateBySavingsID :many
 SELECT id, savings_id, date, interest, tax, contribution, increase, capital FROM savings_state
 WHERE savings_id = $1
+ORDER BY date ASC
 `
 
 func (q *Queries) GetSavingsStateBySavingsID(ctx context.Context, savingsID pgtype.UUID) ([]SavingsState, error) {

@@ -32,6 +32,7 @@ type SaveSavingsInput struct {
 }
 
 type SavingsPlan struct {
+	ID                    uuid.UUID
 	UserID                uuid.UUID
 	Name                  string
 	OriginalData          SavingsInput

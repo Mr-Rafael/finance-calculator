@@ -31,13 +31,12 @@ type SavingsStatus struct {
 }
 
 type SavingsSaveResponseParams struct {
-	Name                  string          `json:"name"`
-	ID                    string          `json:"id"`
-	MonthlyInterestRate   string          `json:"monthlyInterestRate"`
-	TotalInterestEarnings int             `json:"totalEarnings"`
-	RateOfReturn          string          `json:"rateOfReturn"`
-	InflationAdjustedROR  string          `json:"inflationAdjustedROR"`
-	Plan                  []SavingsStatus `json:"plan"`
+	Name                  string `json:"name"`
+	ID                    string `json:"id"`
+	MonthlyInterestRate   string `json:"monthlyInterestRate"`
+	TotalInterestEarnings int    `json:"totalEarnings"`
+	RateOfReturn          string `json:"rateOfReturn"`
+	InflationAdjustedROR  string `json:"inflationAdjustedROR"`
 }
 
 type SavingsSaveRequestParams struct {
