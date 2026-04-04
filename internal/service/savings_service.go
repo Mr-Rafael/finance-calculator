@@ -48,11 +48,30 @@ func (s *SavingsService) SaveSavingsPlan(ctx context.Context, input domain.SaveS
 		return db.Saving{}, err
 	}
 
+	fmt.Printf("Initialized this: Yearly Interest Rate: %v | Interest Rate Type: %v | Tax Rate: %v | Yearly Inflation Rate: %v\n\n",
+		plan.OriginalData.YearlyInterestRate,
+		plan.OriginalData.InterestRateType,
+		plan.OriginalData.TaxRate,
+		plan.OriginalData.YearlyInflationRate)
+
 	plan = calculateSavings(plan)
+
+	fmt.Printf("Sending this to repo: Yearly Interest Rate: %v | Interest Rate Type: %v | Tax Rate: %v | Yearly Inflation Rate: %v\n\n",
+		plan.OriginalData.YearlyInterestRate,
+		plan.OriginalData.InterestRateType,
+		plan.OriginalData.TaxRate,
+		plan.OriginalData.YearlyInflationRate)
 	result, err := s.repo.SaveSavingsPlan(ctx, plan)
 	if err != nil {
 		return db.Saving{}, err
 	}
+
+	fmt.Printf("Service layer returned: Yearly Interest Rate: %v | Interest Rate Type: %v | Tax Rate: %v | Yearly Inflation Rate: %v\n\n ",
+		result.YearlyInterestRate,
+		result.InterestRateType,
+		result.TaxRate,
+		result.YearlyInflationRate)
+
 	return result, nil
 }
 
@@ -90,6 +109,16 @@ func initializeSavingsPlan(input domain.SavingsInput, userID uuid.UUID, name str
 	plan.OriginalData = input
 	plan.UserID = userID
 	plan.Name = name
+
+	if len(input.InterestRateType) == 0 {
+		plan.OriginalData.InterestRateType = "APY"
+	}
+	if len(input.TaxRate) == 0 {
+		plan.OriginalData.TaxRate = "0"
+	}
+	if len(input.YearlyInflationRate) == 0 {
+		plan.OriginalData.YearlyInflationRate = "0"
+	}
 
 	startingCapital := decimal.NewFromInt(int64(input.StartingCapital))
 	if !decimalIsBetween(startingCapital, minStartCapCents, maxStartCapCents) {

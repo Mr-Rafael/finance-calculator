@@ -1,6 +1,8 @@
 package mapper
 
 import (
+	"time"
+
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/Mr-Rafael/finance-calculator/internal/domain"
 	"github.com/Mr-Rafael/finance-calculator/internal/dto"
@@ -10,7 +12,7 @@ import (
 func ToSavingsResponse(plan domain.SavingsPlan) dto.SavingsResponseParams {
 	response := dto.SavingsResponseParams{}
 
-	response.MonthlyInterestRate = multiplierToPercent(plan.InterestMultiplierM)
+	response.MonthlyInterestRate = multiplierToHighPrecisionPercent(plan.InterestMultiplierM)
 	response.TotalInterestEarnings = int(plan.TotalInterestEarnings.Round(0).IntPart())
 	response.RateOfReturn = plan.RateOfReturn.String()
 	response.InflationAdjustedROR = plan.InflationAdjustedROR.String()
@@ -27,10 +29,18 @@ func ToSavingsResponse(plan domain.SavingsPlan) dto.SavingsResponseParams {
 	return response
 }
 
-func ToSavingsSaveResponse(savings db.Saving) dto.SavingsSaveResponseParams {
+func ToSaveSavingsResponse(savings db.Saving) dto.SavingsSaveResponseParams {
 	return dto.SavingsSaveResponseParams{
-		Name:                  savings.Name,
 		ID:                    savings.ID.String(),
+		Name:                  savings.Name,
+		StartingCapital:       int(savings.StartingCapital),
+		YearlyInterestRate:    savings.YearlyInflationRate.String,
+		InterestRateType:      savings.InterestRateType,
+		MonthlyContribution:   int(savings.MonthlyContribution),
+		DurationYears:         int(savings.DurationYears),
+		TaxRate:               savings.TaxRate,
+		YearlyInflationRate:   savings.YearlyInflationRate.String,
+		StartDate:             savings.StartDate.Time.Format(time.RFC3339),
 		MonthlyInterestRate:   savings.MonthlyInterestRate,
 		TotalInterestEarnings: int(savings.TotalInterestEarnings),
 		RateOfReturn:          savings.RateOfReturn,
@@ -47,6 +57,46 @@ func ToSavingsListResponse(rows []db.GetSavingsByUserIDRow) dto.SavingsListRespo
 			StartingCapital: int(row.StartingCapital),
 		}
 		params.Plans = append(params.Plans, newRow)
+	}
+	return params
+}
+
+func ToGetSavingsResponse(plan domain.SavingsPlan) dto.SavedSavingsResponseParams {
+	originalParams := dto.OriginalSavingsData{
+		StartingCapital:     plan.OriginalData.StartingCapital,
+		YearlyInterestRate:  plan.OriginalData.YearlyInterestRate,
+		InterestRateType:    plan.OriginalData.InterestRateType,
+		MonthlyContribution: plan.OriginalData.MonthlyContribution,
+		DurationYears:       plan.OriginalData.DurationYears,
+		TaxRate:             plan.OriginalData.TaxRate,
+		YearlyInflationRate: plan.OriginalData.YearlyInflationRate,
+		StartDate:           plan.OriginalData.StartDate,
+	}
+	monthlyInterestRate := multiplierToHighPrecisionPercent(plan.InterestMultiplierM)
+	totalInterestEarnings := int(plan.TotalInterestEarnings.Round(0).IntPart())
+	rateOfReturn := plan.RateOfReturn.String()
+	inflationAdjustedROR := plan.InflationAdjustedROR.String()
+	calculatedParams := dto.CalculatedSavingsData{
+		MonthlyInterestRate:   monthlyInterestRate,
+		TotalInterestEarnings: totalInterestEarnings,
+		RateOfReturn:          rateOfReturn,
+		InflationAdjustedROR:  inflationAdjustedROR,
+	}
+	params := dto.SavedSavingsResponseParams{
+		ID:             plan.ID.String(),
+		Name:           plan.Name,
+		OriginalData:   originalParams,
+		CalculatedData: calculatedParams,
+	}
+	for _, status := range plan.Plan {
+		params.Plan = append(params.Plan, dto.SavingsStatus{
+			Date:         status.Date,
+			Interest:     status.Interest,
+			Tax:          status.Tax,
+			Contribution: status.Contribution,
+			Increase:     status.Increase,
+			Capital:      status.Capital,
+		})
 	}
 	return params
 }

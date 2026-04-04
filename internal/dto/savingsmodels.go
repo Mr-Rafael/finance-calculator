@@ -21,6 +21,32 @@ type SavingsResponseParams struct {
 	Plan                  []SavingsStatus `json:"plan"`
 }
 
+type SavedSavingsResponseParams struct {
+	ID             string                `json:"id"`
+	Name           string                `json:"name"`
+	OriginalData   OriginalSavingsData   `json:"originalData"`
+	CalculatedData CalculatedSavingsData `json:"calculatedData"`
+	Plan           []SavingsStatus       `json:"plan"`
+}
+
+type OriginalSavingsData struct {
+	StartingCapital     int    `json:"startingCapital"`
+	YearlyInterestRate  string `json:"yearlyInterestRate"`
+	InterestRateType    string `json:"interestRateType"`
+	MonthlyContribution int    `json:"monthlyContribution"`
+	DurationYears       int    `json:"durationYears"`
+	TaxRate             string `json:"taxRate"`
+	YearlyInflationRate string `json:"yearlyInflationRate"`
+	StartDate           string `json:"startDate"`
+}
+
+type CalculatedSavingsData struct {
+	MonthlyInterestRate   string `json:"monthlyInterestRate"`
+	TotalInterestEarnings int    `json:"totalInterestEarnings"`
+	RateOfReturn          string `json:"rateOfReturn"`
+	InflationAdjustedROR  string `json:"inflationAdjustedROR"`
+}
+
 type SavingsStatus struct {
 	Date         time.Time `json:"date"`
 	Interest     int       `json:"interest"`
@@ -31,8 +57,16 @@ type SavingsStatus struct {
 }
 
 type SavingsSaveResponseParams struct {
-	Name                  string `json:"name"`
 	ID                    string `json:"id"`
+	Name                  string `json:"name"`
+	StartingCapital       int    `json:"startingCapital"`
+	YearlyInterestRate    string `json:"yearlyInterestRate"`
+	InterestRateType      string `json:"interestRateType"`
+	MonthlyContribution   int    `json:"monthlyContribution"`
+	DurationYears         int    `json:"durationYears"`
+	TaxRate               string `json:"taxRate"`
+	YearlyInflationRate   string `json:"yearlyInflationRate"`
+	StartDate             string `json:"startDate"`
 	MonthlyInterestRate   string `json:"monthlyInterestRate"`
 	TotalInterestEarnings int    `json:"totalEarnings"`
 	RateOfReturn          string `json:"rateOfReturn"`

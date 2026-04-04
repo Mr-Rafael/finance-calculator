@@ -37,6 +37,12 @@ func (r *SavingsRepo) SaveSavingsPlan(ctx context.Context, plan domain.SavingsPl
 			return db.Saving{}, fmt.Errorf("Failed to savings status to database: %v", err)
 		}
 	}
+
+	fmt.Printf("Saved this: Yearly Interest Rate: %v | Interest Rate Type: %v | Tax Rate: %v | Yearly Inflation Rate: %v\n\n",
+		plan.OriginalData.YearlyInterestRate,
+		plan.OriginalData.InterestRateType,
+		plan.OriginalData.TaxRate,
+		plan.OriginalData.YearlyInflationRate)
 	return savingsResult, nil
 }
 
@@ -136,6 +142,15 @@ func multiplierToPercent(mult decimal.Decimal) string {
 	return mult.Mul(oneHundred).String()
 }
 
+func percentToMultiplier(p string) decimal.Decimal {
+	oneHundred := decimal.NewFromInt(100)
+	decimalP, err := decimal.NewFromString(p)
+	if err != nil {
+		return decimal.Zero
+	}
+	return decimalP.Div(oneHundred)
+}
+
 func toSavingsPlan(queryResult db.Saving) (domain.SavingsPlan, error) {
 	rateOfReturn, err := decimal.NewFromString(queryResult.RateOfReturn)
 	if err != nil {
@@ -163,6 +178,7 @@ func toSavingsPlan(queryResult db.Saving) (domain.SavingsPlan, error) {
 		StartingCapital:       decimal.NewFromInt(int64(queryResult.StartingCapital)),
 		MonthlyContribution:   decimal.NewFromInt(int64(queryResult.MonthlyContribution)),
 		DurationMonths:        decimal.NewFromInt(int64(queryResult.DurationYears)).Mul(decimal.NewFromInt(12)),
+		InterestMultiplierM:   percentToMultiplier(queryResult.MonthlyInterestRate),
 		TotalInterestEarnings: decimal.NewFromInt(int64(queryResult.TotalInterestEarnings)),
 		RateOfReturn:          rateOfReturn,
 		InflationAdjustedROR:  inflationAdjustedReturn,

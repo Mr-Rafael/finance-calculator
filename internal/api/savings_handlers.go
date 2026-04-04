@@ -58,7 +58,7 @@ func (handler *SavingsHandler) HandleSaveSavings(writer http.ResponseWriter, req
 		return
 	}
 
-	respondWithJSON(writer, mapper.ToSavingsSaveResponse(result), http.StatusCreated)
+	respondWithJSON(writer, mapper.ToSaveSavingsResponse(result), http.StatusCreated)
 }
 
 func (handler *SavingsHandler) HandleListSavings(writer http.ResponseWriter, request *http.Request) {
@@ -95,5 +95,5 @@ func (handler *SavingsHandler) HandleGetSavings(writer http.ResponseWriter, requ
 		return
 	}
 
-	respondWithJSON(writer, mapper.ToSavingsResponse(result), http.StatusOK)
+	respondWithJSON(writer, mapper.ToGetSavingsResponse(result), http.StatusOK)
 }
