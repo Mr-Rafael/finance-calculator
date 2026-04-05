@@ -30,3 +30,7 @@ func respondWithJSON(writer http.ResponseWriter, data any, statusCode int) {
 	writer.WriteHeader(statusCode)
 	json.NewEncoder(writer).Encode(data)
 }
+
+func respondWithCode(writer http.ResponseWriter, statusCode int) {
+	writer.WriteHeader(statusCode)
+}

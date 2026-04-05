@@ -85,7 +85,7 @@ func (handler *SavingsHandler) HandleGetSavings(writer http.ResponseWriter, requ
 	}
 	planUUID, err := uuid.Parse(planID)
 	if err != nil {
-		respondWithErrorCode(writer, "failed to get user ID from context", http.StatusUnauthorized)
+		respondWithErrorCode(writer, "invalid plan ID in URL", http.StatusUnauthorized)
 		return
 	}
 
@@ -96,4 +96,26 @@ func (handler *SavingsHandler) HandleGetSavings(writer http.ResponseWriter, requ
 	}
 
 	respondWithJSON(writer, mapper.ToGetSavingsResponse(result), http.StatusOK)
+}
+
+func (handler *SavingsHandler) HandleDeleteSavings(writer http.ResponseWriter, request *http.Request) {
+	userID := request.Context().Value(userIDKey).(string)
+	planID := request.PathValue("id")
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		respondWithErrorCode(writer, "failed to get user ID from context", http.StatusUnauthorized)
+		return
+	}
+	planUUID, err := uuid.Parse(planID)
+	if err != nil {
+		respondWithErrorCode(writer, "invalid plan ID in URL", http.StatusUnauthorized)
+		return
+	}
+	err = handler.savingsService.DeleteSavingsPlan(context.Background(), planUUID, userUUID)
+	if err != nil {
+		respondWithErrorCode(writer, fmt.Sprintf("failed attempt to delete savings plan %v by user %v", planID, userID), http.StatusUnauthorized)
+		return
+	}
+	respondWithCode(writer, http.StatusNoContent)
 }

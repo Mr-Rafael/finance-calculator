@@ -89,6 +89,10 @@ func (r *SavingsRepo) GetSavingsPlanByID(ctx context.Context, planID uuid.UUID, 
 	return plan, nil
 }
 
+func (r *SavingsRepo) DeleteSavingsPlan(ctx context.Context, planID uuid.UUID, userID uuid.UUID) error {
+	return r.queries.DeleteSavings(ctx, db.DeleteSavingsParams(toSavingsPlanSelectParams(planID, userID)))
+}
+
 func toSavingsInsertQueryParams(plan domain.SavingsPlan) (db.CreateSavingsParams, error) {
 	startDate, err := time.Parse("2006-01-02", plan.OriginalData.StartDate)
 	if err != nil {

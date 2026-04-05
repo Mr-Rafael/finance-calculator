@@ -87,6 +87,21 @@ func (q *Queries) CreateSavings(ctx context.Context, arg CreateSavingsParams) (S
 	return i, err
 }
 
+const deleteSavings = `-- name: DeleteSavings :exec
+DELETE FROM savings
+WHERE id = $1 AND user_id = $2
+`
+
+type DeleteSavingsParams struct {
+	ID     pgtype.UUID
+	UserID pgtype.UUID
+}
+
+func (q *Queries) DeleteSavings(ctx context.Context, arg DeleteSavingsParams) error {
+	_, err := q.db.Exec(ctx, deleteSavings, arg.ID, arg.UserID)
+	return err
+}
+
 const getSavings = `-- name: GetSavings :one
 SELECT id, user_id, name, starting_capital, yearly_interest_rate, interest_rate_type, monthly_contribution, duration_years, tax_rate, yearly_inflation_rate, start_date, monthly_interest_rate, total_interest_earnings, rate_of_return, inflation_adjusted_ror, created_at FROM savings
 WHERE id = $1 AND user_id = $2

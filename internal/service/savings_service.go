@@ -91,6 +91,10 @@ func (s *SavingsService) GetSavedSavingsPlan(ctx context.Context, planID uuid.UU
 	return result, nil
 }
 
+func (s *SavingsService) DeleteSavingsPlan(ctx context.Context, planID uuid.UUID, userID uuid.UUID) error {
+	return s.repo.DeleteSavingsPlan(ctx, planID, userID)
+}
+
 func calculateSavings(plan domain.SavingsPlan) domain.SavingsPlan {
 	for i := 0; i < int(plan.DurationMonths.IntPart()); i++ {
 		state := plan.PassMonth()
