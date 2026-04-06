@@ -1,11 +1,15 @@
 package mapper
 
 import (
+	"time"
+
+	"github.com/Mr-Rafael/finance-calculator/internal/db"
+	"github.com/Mr-Rafael/finance-calculator/internal/domain"
 	"github.com/Mr-Rafael/finance-calculator/internal/dto"
-	"github.com/Mr-Rafael/finance-calculator/internal/service"
+	"github.com/google/uuid"
 )
 
-func ToLoanResponse(plan service.LoanPaymentPlan) dto.LoanResponseParams {
+func ToLoanResponse(plan domain.LoanPaymentPlan) dto.LoanResponseParams {
 	response := dto.LoanResponseParams{}
 
 	response.DurationMonths = plan.DurationMonths
@@ -25,8 +29,24 @@ func ToLoanResponse(plan service.LoanPaymentPlan) dto.LoanResponseParams {
 	return response
 }
 
-func ToLoanInput(input dto.LoanRequestParams) service.LoansInput {
-	loan := service.LoansInput{
+func ToSaveLoanResponse(loan db.Loan) dto.LoanSaveResponseParams {
+	return dto.LoanSaveResponseParams{
+		ID:                  loan.ID.String(),
+		Name:                loan.Name,
+		StartingPrincipal:   int(loan.StartingPrincipal),
+		YearlyInterestRate:  loan.YearlyInterestRate,
+		MonthlyPayment:      int(loan.MonthlyPayment),
+		EscrowPayment:       int(loan.EscrowPayment),
+		StartDate:           loan.StartDate.Time.Format(time.RFC3339),
+		DurationMonths:      int(loan.DurationMonths),
+		TotalExpenditure:    int(loan.TotalExpenditure),
+		TotalPaid:           int(loan.TotalPaid),
+		CostOfCreditPercent: loan.CostOfCredit,
+	}
+}
+
+func ToLoanInput(input dto.LoanRequestParams) domain.LoansInput {
+	loan := domain.LoansInput{
 		StartingPrincipal:  input.StartingPrincipal,
 		YearlyInterestRate: input.YearlyInterestRate,
 		MonthlyPayment:     input.MonthlyPayment,
@@ -34,5 +54,18 @@ func ToLoanInput(input dto.LoanRequestParams) service.LoansInput {
 		StartDate:          input.StartDate,
 	}
 
+	return loan
+}
+
+func ToSaveLoanInput(userId uuid.UUID, input dto.LoanSaveRequestParams) domain.SaveLoanInput {
+	loan := domain.SaveLoanInput{
+		UserID:             userId,
+		LoanName:           input.Name,
+		StartingPrincipal:  input.StartingPrincipal,
+		YearlyInterestRate: input.YearlyInterestRate,
+		MonthlyPayment:     input.MonthlyPayment,
+		EscrowPayment:      input.EscrowPayment,
+		StartDate:          input.StartDate,
+	}
 	return loan
 }

@@ -23,27 +23,21 @@ func NewSavingsRepo(queries *db.Queries) *SavingsRepo {
 func (r *SavingsRepo) SaveSavingsPlan(ctx context.Context, plan domain.SavingsPlan) (db.Saving, error) {
 	savingsParams, err := toSavingsInsertQueryParams(plan)
 	if err != nil {
-		return db.Saving{}, fmt.Errorf("Failed to save to database: %v", err)
+		return db.Saving{}, fmt.Errorf("Error preparing params for insert query: %v", err)
 	}
 
-	savingsResult, err := r.queries.CreateSavings(ctx, savingsParams)
+	queryResult, err := r.queries.CreateSavings(ctx, savingsParams)
 	if err != nil {
 		return db.Saving{}, fmt.Errorf("Failed to save to database: %v", err)
 	}
 
 	for _, status := range plan.Plan {
-		_, err := r.queries.CreateSavingsState(ctx, toSavingsStateInsertQueryParams(status, savingsResult.ID))
+		_, err := r.queries.CreateSavingsState(ctx, toSavingsStateInsertParams(status, queryResult.ID))
 		if err != nil {
-			return db.Saving{}, fmt.Errorf("Failed to savings status to database: %v", err)
+			return db.Saving{}, fmt.Errorf("Failed to save savings status to database: %v", err)
 		}
 	}
-
-	fmt.Printf("Saved this: Yearly Interest Rate: %v | Interest Rate Type: %v | Tax Rate: %v | Yearly Inflation Rate: %v\n\n",
-		plan.OriginalData.YearlyInterestRate,
-		plan.OriginalData.InterestRateType,
-		plan.OriginalData.TaxRate,
-		plan.OriginalData.YearlyInflationRate)
-	return savingsResult, nil
+	return queryResult, nil
 }
 
 func (r *SavingsRepo) GetSavingsPlansByUser(ctx context.Context, userID uuid.UUID) ([]db.GetSavingsByUserIDRow, error) {
@@ -65,7 +59,7 @@ func (r *SavingsRepo) GetSavingsPlanByID(ctx context.Context, planID uuid.UUID, 
 		Valid: true,
 	}
 
-	savingsQueryResult, err := r.queries.GetSavings(ctx, toSavingsPlanSelectParams(planID, userID))
+	savingsQueryResult, err := r.queries.GetSavings(ctx, toSavingsPlanParams(planID, userID))
 	if err != nil {
 		return domain.SavingsPlan{}, fmt.Errorf("failed to fetch savings plan from database: %v", err)
 	}
@@ -90,7 +84,7 @@ func (r *SavingsRepo) GetSavingsPlanByID(ctx context.Context, planID uuid.UUID, 
 }
 
 func (r *SavingsRepo) DeleteSavingsPlan(ctx context.Context, planID uuid.UUID, userID uuid.UUID) error {
-	return r.queries.DeleteSavings(ctx, db.DeleteSavingsParams(toSavingsPlanSelectParams(planID, userID)))
+	return r.queries.DeleteSavings(ctx, db.DeleteSavingsParams(toSavingsPlanParams(planID, userID)))
 }
 
 func toSavingsInsertQueryParams(plan domain.SavingsPlan) (db.CreateSavingsParams, error) {
@@ -125,7 +119,7 @@ func toSavingsInsertQueryParams(plan domain.SavingsPlan) (db.CreateSavingsParams
 	}, nil
 }
 
-func toSavingsStateInsertQueryParams(status domain.SavingsStatus, savingsID pgtype.UUID) db.CreateSavingsStateParams {
+func toSavingsStateInsertParams(status domain.SavingsStatus, savingsID pgtype.UUID) db.CreateSavingsStateParams {
 	params := db.CreateSavingsStateParams{
 		SavingsID: savingsID,
 		Date: pgtype.Timestamptz{
@@ -191,7 +185,7 @@ func toSavingsPlan(queryResult db.Saving) (domain.SavingsPlan, error) {
 	return plan, nil
 }
 
-func toSavingsPlanSelectParams(savingsID uuid.UUID, userID uuid.UUID) db.GetSavingsParams {
+func toSavingsPlanParams(savingsID uuid.UUID, userID uuid.UUID) db.GetSavingsParams {
 	return db.GetSavingsParams{
 		ID: pgtype.UUID{
 			Bytes: savingsID,

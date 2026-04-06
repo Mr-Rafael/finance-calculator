@@ -29,7 +29,7 @@ func (handler *SavingsHandler) HandleCalculateSavings(writer http.ResponseWriter
 		return
 	}
 
-	result, err := handler.savingsService.GetSavingsPlan(context.Background(), mapper.ToSavingsInput(reqParams))
+	result, err := handler.savingsService.CalculateSavingsPlan(context.Background(), mapper.ToSavingsInput(reqParams))
 	if err != nil {
 		respondWithError(writer, fmt.Sprintf("Error calculating savings plan: %v", err), fmt.Sprintf("Error calculating savings plan: %v", err), http.StatusInternalServerError)
 	}
@@ -89,7 +89,7 @@ func (handler *SavingsHandler) HandleGetSavings(writer http.ResponseWriter, requ
 		return
 	}
 
-	result, err := handler.savingsService.GetSavedSavingsPlan(context.Background(), planUUID, userUUID)
+	result, err := handler.savingsService.GetSavingsPlan(context.Background(), planUUID, userUUID)
 	if err != nil {
 		respondWithErrorCode(writer, fmt.Sprintf("attempt to fetch plan %v by user %v", planUUID, userUUID), http.StatusUnauthorized)
 		return

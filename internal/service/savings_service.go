@@ -13,7 +13,7 @@ import (
 )
 
 type SavingsService struct {
-	repo *repository.SavingsRepo
+	savingsRepo *repository.SavingsRepo
 }
 
 const minStartCapCents = "1"
@@ -28,10 +28,10 @@ const minTaxPercent = "0"
 const maxTaxPercent = "100"
 
 func NewSavingsService(repo *repository.SavingsRepo) *SavingsService {
-	return &SavingsService{repo: repo}
+	return &SavingsService{savingsRepo: repo}
 }
 
-func (s *SavingsService) GetSavingsPlan(ctx context.Context, input domain.SavingsInput) (domain.SavingsPlan, error) {
+func (s *SavingsService) CalculateSavingsPlan(ctx context.Context, input domain.SavingsInput) (domain.SavingsPlan, error) {
 	plan, err := initializeSavingsPlan(input, uuid.Nil, "")
 	if err != nil {
 		return domain.SavingsPlan{}, err
@@ -48,43 +48,25 @@ func (s *SavingsService) SaveSavingsPlan(ctx context.Context, input domain.SaveS
 		return db.Saving{}, err
 	}
 
-	fmt.Printf("Initialized this: Yearly Interest Rate: %v | Interest Rate Type: %v | Tax Rate: %v | Yearly Inflation Rate: %v\n\n",
-		plan.OriginalData.YearlyInterestRate,
-		plan.OriginalData.InterestRateType,
-		plan.OriginalData.TaxRate,
-		plan.OriginalData.YearlyInflationRate)
-
 	plan = calculateSavings(plan)
-
-	fmt.Printf("Sending this to repo: Yearly Interest Rate: %v | Interest Rate Type: %v | Tax Rate: %v | Yearly Inflation Rate: %v\n\n",
-		plan.OriginalData.YearlyInterestRate,
-		plan.OriginalData.InterestRateType,
-		plan.OriginalData.TaxRate,
-		plan.OriginalData.YearlyInflationRate)
-	result, err := s.repo.SaveSavingsPlan(ctx, plan)
+	result, err := s.savingsRepo.SaveSavingsPlan(ctx, plan)
 	if err != nil {
 		return db.Saving{}, err
 	}
-
-	fmt.Printf("Service layer returned: Yearly Interest Rate: %v | Interest Rate Type: %v | Tax Rate: %v | Yearly Inflation Rate: %v\n\n ",
-		result.YearlyInterestRate,
-		result.InterestRateType,
-		result.TaxRate,
-		result.YearlyInflationRate)
 
 	return result, nil
 }
 
 func (s *SavingsService) GetSavingsPlansByUser(ctx context.Context, input uuid.UUID) ([]db.GetSavingsByUserIDRow, error) {
-	result, err := s.repo.GetSavingsPlansByUser(ctx, input)
+	result, err := s.savingsRepo.GetSavingsPlansByUser(ctx, input)
 	if err != nil {
 		return []db.GetSavingsByUserIDRow{}, err
 	}
 	return result, nil
 }
 
-func (s *SavingsService) GetSavedSavingsPlan(ctx context.Context, planID uuid.UUID, userID uuid.UUID) (domain.SavingsPlan, error) {
-	result, err := s.repo.GetSavingsPlanByID(ctx, planID, userID)
+func (s *SavingsService) GetSavingsPlan(ctx context.Context, planID uuid.UUID, userID uuid.UUID) (domain.SavingsPlan, error) {
+	result, err := s.savingsRepo.GetSavingsPlanByID(ctx, planID, userID)
 	if err != nil {
 		return domain.SavingsPlan{}, err
 	}
@@ -92,7 +74,7 @@ func (s *SavingsService) GetSavedSavingsPlan(ctx context.Context, planID uuid.UU
 }
 
 func (s *SavingsService) DeleteSavingsPlan(ctx context.Context, planID uuid.UUID, userID uuid.UUID) error {
-	return s.repo.DeleteSavingsPlan(ctx, planID, userID)
+	return s.savingsRepo.DeleteSavingsPlan(ctx, planID, userID)
 }
 
 func calculateSavings(plan domain.SavingsPlan) domain.SavingsPlan {

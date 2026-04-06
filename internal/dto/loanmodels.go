@@ -26,3 +26,26 @@ type LoanStatus struct {
 	Paydown       int       `json:"paydown"`
 	Principal     int       `json:"principal"`
 }
+
+type LoanSaveRequestParams struct {
+	Name               string `json:"name"`
+	StartingPrincipal  int    `json:"startingPrincipal"`
+	YearlyInterestRate string `json:"yearlyInterestRate"`
+	MonthlyPayment     int    `json:"monthlyPayment"`
+	EscrowPayment      int    `json:"escrowPayment"`
+	StartDate          string `json:"startDate"`
+}
+
+type LoanSaveResponseParams struct {
+	ID                  string `json:"id"`
+	Name                string `json:"name"`
+	StartingPrincipal   int    `json:"startingPrincipal"`
+	YearlyInterestRate  string `json:"yearlyInterestRate"`
+	MonthlyPayment      int    `json:"monthlyPayment"`
+	EscrowPayment       int    `json:"escrowPayment"`
+	StartDate           string `json:"startDate"`
+	DurationMonths      int    `json:"durationMonths"`
+	TotalExpenditure    int    `json:"totalExpenditure"`
+	TotalPaid           int    `json:"totalPaid"`
+	CostOfCreditPercent string `json:"costOfCreditPercent"`
+}
