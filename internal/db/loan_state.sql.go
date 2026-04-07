@@ -58,14 +58,14 @@ func (q *Queries) CreateLoanState(ctx context.Context, arg CreateLoanStateParams
 	return i, err
 }
 
-const getLoanStateByLoanID = `-- name: GetLoanStateByLoanID :many
+const getLoanStatesByLoanID = `-- name: GetLoanStatesByLoanID :many
 SELECT id, loan_id, date, payment, interest, other_payments, paydown, principal FROM loan_state
 WHERE loan_id = $1
 ORDER BY date ASC
 `
 
-func (q *Queries) GetLoanStateByLoanID(ctx context.Context, loanID pgtype.UUID) ([]LoanState, error) {
-	rows, err := q.db.Query(ctx, getLoanStateByLoanID, loanID)
+func (q *Queries) GetLoanStatesByLoanID(ctx context.Context, loanID pgtype.UUID) ([]LoanState, error) {
+	rows, err := q.db.Query(ctx, getLoanStatesByLoanID, loanID)
 	if err != nil {
 		return nil, err
 	}

@@ -62,6 +62,22 @@ func (s *LoansService) SaveLoanPaymentPlan(ctx context.Context, input domain.Sav
 	return result, nil
 }
 
+func (s *LoansService) GetLoansByUser(ctx context.Context, input uuid.UUID) ([]db.GetLoansByUserIDRow, error) {
+	result, err := s.loansRepo.GetLoanPaymentPlansByUser(ctx, input)
+	if err != nil {
+		return []db.GetLoansByUserIDRow{}, err
+	}
+	return result, nil
+}
+
+func (s *LoansService) GetLoan(ctx context.Context, planID uuid.UUID, userID uuid.UUID) (domain.LoanPaymentPlan, error) {
+	result, err := s.loansRepo.GetLoanByID(ctx, planID, userID)
+	if err != nil {
+		return domain.LoanPaymentPlan{}, err
+	}
+	return result, nil
+}
+
 func calculatePaymentPlan(plan domain.LoanPaymentPlan) (domain.LoanPaymentPlan, error) {
 	i := 0
 	for plan.CurrentPrincipal.Compare(decimal.Zero) == 1 {

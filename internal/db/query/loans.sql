@@ -6,12 +6,13 @@ INSERT INTO loans(user_id,
     monthly_payment,
     escrow_payment,
     start_date,
+    monthly_interest_rate,
     duration_months,
     total_expenditure,
     total_paid,
     cost_of_credit
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 RETURNING *;
 
 -- name: GetLoansByUserID :many
@@ -20,4 +21,4 @@ WHERE user_id = $1;
 
 -- name: GetLoan :one
 SELECT * FROM loans
-WHERE id = $1;
+WHERE id = $1 AND user_id = $2;

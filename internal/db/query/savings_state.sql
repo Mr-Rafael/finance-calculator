@@ -10,7 +10,7 @@ INSERT INTO savings_state (savings_id,
 VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
 
--- name: GetSavingsStateBySavingsID :many
+-- name: GetSavingsStatesBySavingsID :many
 SELECT * FROM savings_state
 WHERE savings_id = $1
 ORDER BY date ASC;

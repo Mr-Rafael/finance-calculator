@@ -19,27 +19,29 @@ INSERT INTO loans(user_id,
     monthly_payment,
     escrow_payment,
     start_date,
+    monthly_interest_rate,
     duration_months,
     total_expenditure,
     total_paid,
     cost_of_credit
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-RETURNING id, user_id, name, starting_principal, yearly_interest_rate, monthly_payment, escrow_payment, start_date, duration_months, total_expenditure, total_paid, cost_of_credit, created_at
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+RETURNING id, user_id, name, starting_principal, yearly_interest_rate, monthly_payment, escrow_payment, start_date, monthly_interest_rate, duration_months, total_expenditure, total_paid, cost_of_credit, created_at
 `
 
 type CreateLoanParams struct {
-	UserID             pgtype.UUID
-	Name               string
-	StartingPrincipal  int32
-	YearlyInterestRate string
-	MonthlyPayment     int32
-	EscrowPayment      int32
-	StartDate          pgtype.Timestamptz
-	DurationMonths     int32
-	TotalExpenditure   int32
-	TotalPaid          int32
-	CostOfCredit       string
+	UserID              pgtype.UUID
+	Name                string
+	StartingPrincipal   int32
+	YearlyInterestRate  string
+	MonthlyPayment      int32
+	EscrowPayment       int32
+	StartDate           pgtype.Timestamptz
+	MonthlyInterestRate string
+	DurationMonths      int32
+	TotalExpenditure    int32
+	TotalPaid           int32
+	CostOfCredit        string
 }
 
 func (q *Queries) CreateLoan(ctx context.Context, arg CreateLoanParams) (Loan, error) {
@@ -51,6 +53,7 @@ func (q *Queries) CreateLoan(ctx context.Context, arg CreateLoanParams) (Loan, e
 		arg.MonthlyPayment,
 		arg.EscrowPayment,
 		arg.StartDate,
+		arg.MonthlyInterestRate,
 		arg.DurationMonths,
 		arg.TotalExpenditure,
 		arg.TotalPaid,
@@ -66,6 +69,7 @@ func (q *Queries) CreateLoan(ctx context.Context, arg CreateLoanParams) (Loan, e
 		&i.MonthlyPayment,
 		&i.EscrowPayment,
 		&i.StartDate,
+		&i.MonthlyInterestRate,
 		&i.DurationMonths,
 		&i.TotalExpenditure,
 		&i.TotalPaid,
@@ -76,12 +80,17 @@ func (q *Queries) CreateLoan(ctx context.Context, arg CreateLoanParams) (Loan, e
 }
 
 const getLoan = `-- name: GetLoan :one
-SELECT id, user_id, name, starting_principal, yearly_interest_rate, monthly_payment, escrow_payment, start_date, duration_months, total_expenditure, total_paid, cost_of_credit, created_at FROM loans
-WHERE id = $1
+SELECT id, user_id, name, starting_principal, yearly_interest_rate, monthly_payment, escrow_payment, start_date, monthly_interest_rate, duration_months, total_expenditure, total_paid, cost_of_credit, created_at FROM loans
+WHERE id = $1 AND user_id = $2
 `
 
-func (q *Queries) GetLoan(ctx context.Context, id pgtype.UUID) (Loan, error) {
-	row := q.db.QueryRow(ctx, getLoan, id)
+type GetLoanParams struct {
+	ID     pgtype.UUID
+	UserID pgtype.UUID
+}
+
+func (q *Queries) GetLoan(ctx context.Context, arg GetLoanParams) (Loan, error) {
+	row := q.db.QueryRow(ctx, getLoan, arg.ID, arg.UserID)
 	var i Loan
 	err := row.Scan(
 		&i.ID,
@@ -92,6 +101,7 @@ func (q *Queries) GetLoan(ctx context.Context, id pgtype.UUID) (Loan, error) {
 		&i.MonthlyPayment,
 		&i.EscrowPayment,
 		&i.StartDate,
+		&i.MonthlyInterestRate,
 		&i.DurationMonths,
 		&i.TotalExpenditure,
 		&i.TotalPaid,

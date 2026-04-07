@@ -45,6 +45,54 @@ func ToSaveLoanResponse(loan db.Loan) dto.LoanSaveResponseParams {
 	}
 }
 
+func ToLoanListResponse(rows []db.GetLoansByUserIDRow) dto.LoanListResponseParams {
+	params := dto.LoanListResponseParams{}
+	for _, row := range rows {
+		newRow := dto.LoanInfo{
+			ID:         row.ID.String(),
+			Name:       row.Name,
+			LoanAmount: int(row.StartingPrincipal),
+		}
+		params.Loans = append(params.Loans, newRow)
+	}
+	return params
+}
+
+func ToGetLoanResponse(plan domain.LoanPaymentPlan) dto.SavedLoanResponseParams {
+	originalParams := dto.OriginalLoanData{
+		StartingPrincipal:  plan.OriginalData.StartingPrincipal,
+		YearlyInterestRate: plan.OriginalData.YearlyInterestRate,
+		MonthlyPayment:     plan.OriginalData.MonthlyPayment,
+		EscrowPayment:      plan.OriginalData.EscrowPayment,
+		StartDate:          plan.OriginalData.StartDate,
+	}
+	monthlyInterestRate := multiplierToHighPrecisionPercent(plan.InterestMultiplierM)
+	calculatedParams := dto.CalculatedLoanData{
+		MonthlyInterestRate: monthlyInterestRate,
+		DurationMonths:      plan.DurationMonths,
+		TotalExpenditure:    int(plan.TotalExpenditure.Round(0).IntPart()),
+		TotalPaid:           int(plan.TotalPaid.Round(0).IntPart()),
+		CostOfCredit:        plan.CostOfCreditPercent.String(),
+	}
+	params := dto.SavedLoanResponseParams{
+		ID:             plan.ID.String(),
+		Name:           plan.Name,
+		OriginalData:   originalParams,
+		CalculatedData: calculatedParams,
+	}
+	for _, status := range plan.Plan {
+		params.PaymentPlan = append(params.PaymentPlan, dto.LoanStatus{
+			Date:          status.Date,
+			Payment:       int(status.Payment.Round(0).IntPart()),
+			Interest:      int(status.Interest.Round(0).IntPart()),
+			OtherPayments: int(status.OtherPayments.Round(0).IntPart()),
+			Paydown:       int(status.Paydown.Round(0).IntPart()),
+			Principal:     int(status.Principal.Round(0).IntPart()),
+		})
+	}
+	return params
+}
+
 func ToLoanInput(input dto.LoanRequestParams) domain.LoansInput {
 	loan := domain.LoansInput{
 		StartingPrincipal:  input.StartingPrincipal,

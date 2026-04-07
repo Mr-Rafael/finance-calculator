@@ -41,12 +41,12 @@ func (r *SavingsRepo) SaveSavingsPlan(ctx context.Context, plan domain.SavingsPl
 }
 
 func (r *SavingsRepo) GetSavingsPlansByUser(ctx context.Context, userID uuid.UUID) ([]db.GetSavingsByUserIDRow, error) {
-	queryID := pgtype.UUID{
+	queryUserID := pgtype.UUID{
 		Bytes: userID,
 		Valid: true,
 	}
 
-	result, err := r.queries.GetSavingsByUserID(ctx, queryID)
+	result, err := r.queries.GetSavingsByUserID(ctx, queryUserID)
 	if err != nil {
 		return []db.GetSavingsByUserIDRow{}, fmt.Errorf("failed to fetch user's savings plans: %v", err)
 	}
@@ -54,18 +54,18 @@ func (r *SavingsRepo) GetSavingsPlansByUser(ctx context.Context, userID uuid.UUI
 }
 
 func (r *SavingsRepo) GetSavingsPlanByID(ctx context.Context, planID uuid.UUID, userID uuid.UUID) (domain.SavingsPlan, error) {
-	queryID := pgtype.UUID{
+	querySavingsID := pgtype.UUID{
 		Bytes: planID,
 		Valid: true,
 	}
 
-	savingsQueryResult, err := r.queries.GetSavings(ctx, toSavingsPlanParams(planID, userID))
+	savingsQueryResult, err := r.queries.GetSavings(ctx, toSavingsGetParams(planID, userID))
 	if err != nil {
 		return domain.SavingsPlan{}, fmt.Errorf("failed to fetch savings plan from database: %v", err)
 	}
 	plan, err := toSavingsPlan(savingsQueryResult)
 
-	statesQueryResult, err := r.queries.GetSavingsStateBySavingsID(ctx, queryID)
+	statesQueryResult, err := r.queries.GetSavingsStatesBySavingsID(ctx, querySavingsID)
 	if err != nil {
 		return domain.SavingsPlan{}, fmt.Errorf("failed to fetch savings plan rows from database: %v", err)
 	}
@@ -84,7 +84,7 @@ func (r *SavingsRepo) GetSavingsPlanByID(ctx context.Context, planID uuid.UUID, 
 }
 
 func (r *SavingsRepo) DeleteSavingsPlan(ctx context.Context, planID uuid.UUID, userID uuid.UUID) error {
-	return r.queries.DeleteSavings(ctx, db.DeleteSavingsParams(toSavingsPlanParams(planID, userID)))
+	return r.queries.DeleteSavings(ctx, db.DeleteSavingsParams(toSavingsGetParams(planID, userID)))
 }
 
 func toSavingsInsertQueryParams(plan domain.SavingsPlan) (db.CreateSavingsParams, error) {
@@ -150,15 +150,7 @@ func percentToMultiplier(p string) decimal.Decimal {
 }
 
 func toSavingsPlan(queryResult db.Saving) (domain.SavingsPlan, error) {
-	rateOfReturn, err := decimal.NewFromString(queryResult.RateOfReturn)
-	if err != nil {
-		return domain.SavingsPlan{}, fmt.Errorf("corrupted rate of return data for savings plan: %v", err)
-	}
-	inflationAdjustedReturn, err := decimal.NewFromString(queryResult.InflationAdjustedRor)
-	if err != nil {
-		return domain.SavingsPlan{}, fmt.Errorf("corrupted inflation rate of return data for savings plan: %v", err)
-	}
-	planData := domain.SavingsInput{
+	originalPlanData := domain.SavingsInput{
 		StartingCapital:     int(queryResult.StartingCapital),
 		YearlyInterestRate:  queryResult.YearlyInterestRate,
 		InterestRateType:    queryResult.InterestRateType,
@@ -168,16 +160,24 @@ func toSavingsPlan(queryResult db.Saving) (domain.SavingsPlan, error) {
 		YearlyInflationRate: queryResult.YearlyInflationRate.String,
 		StartDate:           queryResult.StartDate.Time.Format(time.RFC3339),
 	}
+	rateOfReturn, err := decimal.NewFromString(queryResult.RateOfReturn)
+	if err != nil {
+		return domain.SavingsPlan{}, fmt.Errorf("corrupted rate of return data for savings plan: %v", err)
+	}
+	inflationAdjustedReturn, err := decimal.NewFromString(queryResult.InflationAdjustedRor)
+	if err != nil {
+		return domain.SavingsPlan{}, fmt.Errorf("corrupted inflation rate of return data for savings plan: %v", err)
+	}
 	plan := domain.SavingsPlan{
 		ID:                    queryResult.ID.Bytes,
 		UserID:                queryResult.UserID.Bytes,
 		Name:                  queryResult.Name,
-		OriginalData:          planData,
-		StartingCapital:       decimal.NewFromInt(int64(queryResult.StartingCapital)),
-		MonthlyContribution:   decimal.NewFromInt(int64(queryResult.MonthlyContribution)),
-		DurationMonths:        decimal.NewFromInt(int64(queryResult.DurationYears)).Mul(decimal.NewFromInt(12)),
+		OriginalData:          originalPlanData,
+		StartingCapital:       decimal.NewFromInt32(queryResult.StartingCapital),
+		MonthlyContribution:   decimal.NewFromInt32(queryResult.MonthlyContribution),
+		DurationMonths:        decimal.NewFromInt32(queryResult.DurationYears).Mul(decimal.NewFromInt(12)),
 		InterestMultiplierM:   percentToMultiplier(queryResult.MonthlyInterestRate),
-		TotalInterestEarnings: decimal.NewFromInt(int64(queryResult.TotalInterestEarnings)),
+		TotalInterestEarnings: decimal.NewFromInt32(queryResult.TotalInterestEarnings),
 		RateOfReturn:          rateOfReturn,
 		InflationAdjustedROR:  inflationAdjustedReturn,
 	}
@@ -185,7 +185,7 @@ func toSavingsPlan(queryResult db.Saving) (domain.SavingsPlan, error) {
 	return plan, nil
 }
 
-func toSavingsPlanParams(savingsID uuid.UUID, userID uuid.UUID) db.GetSavingsParams {
+func toSavingsGetParams(savingsID uuid.UUID, userID uuid.UUID) db.GetSavingsParams {
 	return db.GetSavingsParams{
 		ID: pgtype.UUID{
 			Bytes: savingsID,

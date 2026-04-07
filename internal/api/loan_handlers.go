@@ -60,3 +60,40 @@ func (handler *LoanHandler) HandleSaveLoan(writer http.ResponseWriter, request *
 
 	respondWithJSON(writer, mapper.ToSaveLoanResponse(result), http.StatusCreated)
 }
+
+func (handler *LoanHandler) HandleListLoans(writer http.ResponseWriter, request *http.Request) {
+	userID := request.Context().Value(userIDKey).(string)
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		respondWithErrorCode(writer, "failed to get user ID from context", http.StatusUnauthorized)
+		return
+	}
+
+	result, err := handler.loanService.GetLoansByUser(context.Background(), userUUID)
+
+	respondWithJSON(writer, mapper.ToLoanListResponse(result), http.StatusOK)
+}
+
+func (handler *LoanHandler) HandleGetLoan(writer http.ResponseWriter, request *http.Request) {
+	userID := request.Context().Value(userIDKey).(string)
+	planID := request.PathValue("id")
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		respondWithErrorCode(writer, "failed to get user ID from context", http.StatusUnauthorized)
+		return
+	}
+	planUUID, err := uuid.Parse(planID)
+	if err != nil {
+		respondWithErrorCode(writer, "invalid plan ID in URL", http.StatusUnauthorized)
+		return
+	}
+
+	result, err := handler.loanService.GetLoan(context.Background(), planUUID, userUUID)
+	if err != nil {
+		respondWithErrorCode(writer, fmt.Sprintf("attempt to fetch loan %v by user %v", planUUID, userUUID), http.StatusUnauthorized)
+		return
+	}
+
+	respondWithJSON(writer, mapper.ToGetLoanResponse(result), http.StatusOK)
+}

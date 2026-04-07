@@ -73,14 +73,11 @@ func ToGetSavingsResponse(plan domain.SavingsPlan) dto.SavedSavingsResponseParam
 		StartDate:           plan.OriginalData.StartDate,
 	}
 	monthlyInterestRate := multiplierToHighPrecisionPercent(plan.InterestMultiplierM)
-	totalInterestEarnings := int(plan.TotalInterestEarnings.Round(0).IntPart())
-	rateOfReturn := plan.RateOfReturn.String()
-	inflationAdjustedROR := plan.InflationAdjustedROR.String()
 	calculatedParams := dto.CalculatedSavingsData{
 		MonthlyInterestRate:   monthlyInterestRate,
-		TotalInterestEarnings: totalInterestEarnings,
-		RateOfReturn:          rateOfReturn,
-		InflationAdjustedROR:  inflationAdjustedROR,
+		TotalInterestEarnings: int(plan.TotalInterestEarnings.Round(0).IntPart()),
+		RateOfReturn:          plan.RateOfReturn.String(),
+		InflationAdjustedROR:  plan.InflationAdjustedROR.String(),
 	}
 	params := dto.SavedSavingsResponseParams{
 		ID:             plan.ID.String(),

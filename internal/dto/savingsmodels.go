@@ -92,5 +92,5 @@ type SavingsListResponseParams struct {
 type SavingsInfo struct {
 	ID              string `json:"id"`
 	Name            string `json:"name"`
-	StartingCapital int    `json:"starting_capital"`
+	StartingCapital int    `json:"startingCapital"`
 }

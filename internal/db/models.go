@@ -9,19 +9,20 @@ import (
 )
 
 type Loan struct {
-	ID                 pgtype.UUID
-	UserID             pgtype.UUID
-	Name               string
-	StartingPrincipal  int32
-	YearlyInterestRate string
-	MonthlyPayment     int32
-	EscrowPayment      int32
-	StartDate          pgtype.Timestamptz
-	DurationMonths     int32
-	TotalExpenditure   int32
-	TotalPaid          int32
-	CostOfCredit       string
-	CreatedAt          pgtype.Timestamptz
+	ID                  pgtype.UUID
+	UserID              pgtype.UUID
+	Name                string
+	StartingPrincipal   int32
+	YearlyInterestRate  string
+	MonthlyPayment      int32
+	EscrowPayment       int32
+	StartDate           pgtype.Timestamptz
+	MonthlyInterestRate string
+	DurationMonths      int32
+	TotalExpenditure    int32
+	TotalPaid           int32
+	CostOfCredit        string
+	CreatedAt           pgtype.Timestamptz
 }
 
 type LoanState struct {

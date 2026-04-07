@@ -7,7 +7,9 @@ import (
 
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/Mr-Rafael/finance-calculator/internal/domain"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/shopspring/decimal"
 )
 
 type LoansRepo struct {
@@ -36,6 +38,49 @@ func (r *LoansRepo) SaveLoanPaymentPlan(ctx context.Context, plan domain.LoanPay
 		}
 	}
 	return queryResult, nil
+}
+
+func (r *LoansRepo) GetLoanPaymentPlansByUser(ctx context.Context, userID uuid.UUID) ([]db.GetLoansByUserIDRow, error) {
+	queryUserID := pgtype.UUID{
+		Bytes: userID,
+		Valid: true,
+	}
+
+	result, err := r.queries.GetLoansByUserID(ctx, queryUserID)
+	if err != nil {
+		return []db.GetLoansByUserIDRow{}, fmt.Errorf("failed to fetch user's loan payment plans: %v", err)
+	}
+	return result, nil
+}
+
+func (r *LoansRepo) GetLoanByID(ctx context.Context, loanID uuid.UUID, userID uuid.UUID) (domain.LoanPaymentPlan, error) {
+	queryLoanID := pgtype.UUID{
+		Bytes: loanID,
+		Valid: true,
+	}
+
+	loanQueryResult, err := r.queries.GetLoan(ctx, toLoanGetParams(loanID, userID))
+	if err != nil {
+		return domain.LoanPaymentPlan{}, fmt.Errorf("failed to fetch loan pament plan from database: %v", err)
+	}
+	plan, err := toLoanPaymentPlan(loanQueryResult)
+
+	statesQueryResult, err := r.queries.GetLoanStatesByLoanID(ctx, queryLoanID)
+	if err != nil {
+		return domain.LoanPaymentPlan{}, fmt.Errorf("failed to fetch loan payment plan rows from database: %v", err)
+	}
+	for _, state := range statesQueryResult {
+		plan.Plan = append(plan.Plan, domain.LoanStatus{
+			Date:          state.Date.Time,
+			Payment:       decimal.NewFromInt32(state.Payment),
+			Interest:      decimal.NewFromInt32(state.Interest),
+			OtherPayments: decimal.NewFromInt32(state.OtherPayments),
+			Paydown:       decimal.NewFromInt32(state.Paydown),
+			Principal:     decimal.NewFromInt32(state.Principal),
+		})
+	}
+
+	return plan, nil
 }
 
 func toLoanInsertQueryParams(plan domain.LoanPaymentPlan) (db.CreateLoanParams, error) {
@@ -78,4 +123,47 @@ func toLoanStateInsertParams(status domain.LoanStatus, loanID pgtype.UUID) db.Cr
 		Principal:     int32(status.Principal.Round(0).IntPart()),
 	}
 	return params
+}
+
+func toLoanPaymentPlan(queryResult db.Loan) (domain.LoanPaymentPlan, error) {
+	originalPlanData := domain.LoansInput{
+		StartingPrincipal:  int(queryResult.StartingPrincipal),
+		YearlyInterestRate: queryResult.YearlyInterestRate,
+		MonthlyPayment:     int(queryResult.MonthlyPayment),
+		EscrowPayment:      int(queryResult.EscrowPayment),
+		StartDate:          queryResult.StartDate.Time.Format(time.RFC3339),
+	}
+	costOfCredit, err := decimal.NewFromString(queryResult.CostOfCredit)
+	if err != nil {
+		return domain.LoanPaymentPlan{}, fmt.Errorf("corrupted cost of credit data for savings plan: %v", err)
+	}
+	plan := domain.LoanPaymentPlan{
+		ID:                  queryResult.ID.Bytes,
+		UserID:              queryResult.UserID.Bytes,
+		Name:                queryResult.Name,
+		OriginalData:        originalPlanData,
+		StartingPrincipal:   decimal.NewFromInt32(queryResult.StartingPrincipal),
+		InterestMultiplierM: percentToMultiplier(queryResult.MonthlyInterestRate),
+		PaymentM:            decimal.NewFromInt32(queryResult.MonthlyPayment),
+		EscrowM:             decimal.NewFromInt32(queryResult.EscrowPayment),
+		DurationMonths:      int(queryResult.DurationMonths),
+		TotalExpenditure:    decimal.NewFromInt32(queryResult.TotalExpenditure),
+		TotalPaid:           decimal.NewFromInt32(queryResult.TotalPaid),
+		CostOfCreditPercent: costOfCredit,
+	}
+
+	return plan, nil
+}
+
+func toLoanGetParams(loanID uuid.UUID, userID uuid.UUID) db.GetLoanParams {
+	return db.GetLoanParams{
+		ID: pgtype.UUID{
+			Bytes: loanID,
+			Valid: true,
+		},
+		UserID: pgtype.UUID{
+			Bytes: userID,
+			Valid: true,
+		},
+	}
 }

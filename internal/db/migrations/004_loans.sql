@@ -8,6 +8,7 @@ CREATE TABLE loans (
     monthly_payment INT NOT NULL,
     escrow_payment INT NOT NULL,
     start_date TIMESTAMPTZ NOT NULL,
+    monthly_interest_rate TEXT NOT NULL,
     duration_months INT NOT NULL,
     total_expenditure INT NOT NULL,
     total_paid INT NOT NULL,

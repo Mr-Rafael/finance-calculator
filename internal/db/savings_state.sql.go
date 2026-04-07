@@ -58,14 +58,14 @@ func (q *Queries) CreateSavingsState(ctx context.Context, arg CreateSavingsState
 	return i, err
 }
 
-const getSavingsStateBySavingsID = `-- name: GetSavingsStateBySavingsID :many
+const getSavingsStatesBySavingsID = `-- name: GetSavingsStatesBySavingsID :many
 SELECT id, savings_id, date, interest, tax, contribution, increase, capital FROM savings_state
 WHERE savings_id = $1
 ORDER BY date ASC
 `
 
-func (q *Queries) GetSavingsStateBySavingsID(ctx context.Context, savingsID pgtype.UUID) ([]SavingsState, error) {
-	rows, err := q.db.Query(ctx, getSavingsStateBySavingsID, savingsID)
+func (q *Queries) GetSavingsStatesBySavingsID(ctx context.Context, savingsID pgtype.UUID) ([]SavingsState, error) {
+	rows, err := q.db.Query(ctx, getSavingsStatesBySavingsID, savingsID)
 	if err != nil {
 		return nil, err
 	}
