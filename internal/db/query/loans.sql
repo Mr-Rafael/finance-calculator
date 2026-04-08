@@ -22,3 +22,7 @@ WHERE user_id = $1;
 -- name: GetLoan :one
 SELECT * FROM loans
 WHERE id = $1 AND user_id = $2;
+
+-- name: DeleteLoan :exec
+DELETE FROM loans
+WHERE id = $1 AND user_id = $2;

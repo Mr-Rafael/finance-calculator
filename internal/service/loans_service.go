@@ -78,6 +78,10 @@ func (s *LoansService) GetLoan(ctx context.Context, planID uuid.UUID, userID uui
 	return result, nil
 }
 
+func (s *LoansService) DeleteLoan(ctx context.Context, loanID uuid.UUID, userID uuid.UUID) error {
+	return s.loansRepo.DeleteLoan(ctx, loanID, userID)
+}
+
 func calculatePaymentPlan(plan domain.LoanPaymentPlan) (domain.LoanPaymentPlan, error) {
 	i := 0
 	for plan.CurrentPrincipal.Compare(decimal.Zero) == 1 {

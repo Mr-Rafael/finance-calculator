@@ -97,3 +97,24 @@ func (handler *LoanHandler) HandleGetLoan(writer http.ResponseWriter, request *h
 
 	respondWithJSON(writer, mapper.ToGetLoanResponse(result), http.StatusOK)
 }
+
+func (handler *LoanHandler) HandleDeleteLoan(writer http.ResponseWriter, request *http.Request) {
+	userID := request.Context().Value(userIDKey).(string)
+	planID := request.PathValue("id")
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		respondWithErrorCode(writer, "failed to get user ID from context", http.StatusUnauthorized)
+		return
+	}
+	planUUID, err := uuid.Parse(planID)
+	if err != nil {
+		respondWithErrorCode(writer, "invalid plan ID in URL", http.StatusUnauthorized)
+		return
+	}
+	err = handler.loanService.DeleteLoan(context.Background(), planUUID, userUUID)
+	if err != nil {
+		respondWithErrorCode(writer, fmt.Sprintf("failed attempt to delete loan %v by user %v", planID, userID), http.StatusUnauthorized)
+	}
+	respondWithCode(writer, http.StatusNoContent)
+}

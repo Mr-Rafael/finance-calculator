@@ -83,6 +83,10 @@ func (r *LoansRepo) GetLoanByID(ctx context.Context, loanID uuid.UUID, userID uu
 	return plan, nil
 }
 
+func (r *LoansRepo) DeleteLoan(ctx context.Context, loanID uuid.UUID, userID uuid.UUID) error {
+	return r.queries.DeleteLoan(ctx, db.DeleteLoanParams(toLoanGetParams(loanID, userID)))
+}
+
 func toLoanInsertQueryParams(plan domain.LoanPaymentPlan) (db.CreateLoanParams, error) {
 	startDate, err := time.Parse("2006-01-02", plan.OriginalData.StartDate)
 	if err != nil {
