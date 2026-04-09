@@ -106,10 +106,11 @@ func toLoanInsertQueryParams(plan domain.LoanPaymentPlan) (db.CreateLoanParams, 
 			Time:  startDate,
 			Valid: true,
 		},
-		DurationMonths:   int32(plan.DurationMonths),
-		TotalExpenditure: int32(plan.TotalExpenditure.Round(0).IntPart()),
-		TotalPaid:        int32(plan.TotalPaid.Round(0).IntPart()),
-		CostOfCredit:     plan.CostOfCreditPercent.String(),
+		MonthlyInterestRate: multiplierToPercent(plan.InterestMultiplierM),
+		DurationMonths:      int32(plan.DurationMonths),
+		TotalExpenditure:    int32(plan.TotalExpenditure.Round(0).IntPart()),
+		TotalPaid:           int32(plan.TotalPaid.Round(0).IntPart()),
+		CostOfCredit:        plan.CostOfCreditPercent.String(),
 	}, nil
 }
 
