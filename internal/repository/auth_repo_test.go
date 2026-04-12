@@ -16,22 +16,8 @@ import (
 )
 
 func TestCreateRefreshToken(t *testing.T) {
-	err := godotenv.Load("../../.env")
-	if err != nil {
-		fmt.Printf("Error reading .env: %v", err)
-	}
-	dbURL := os.Getenv("POSTGRES_CONNECTION_STRING")
 	ctx := context.Background()
-	if dbURL == "" {
-		log.Fatal("DB_URL environment variable not set")
-	}
-
-	pool, err := pgxpool.New(ctx, dbURL)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	queries := db.New(pool)
+	queries := initializeQueries(ctx)
 	repo := NewAuthRepo(queries)
 
 	test_user_id, err := uuid.Parse("af38df43-3ced-4869-9930-93a0fa0cf1e0")
@@ -54,4 +40,50 @@ func TestCreateRefreshToken(t *testing.T) {
 	if got.UserID.Bytes != want.UserID.Bytes {
 		log.Fatalf("Saved (%v) and expected (%v) user IDs did not match.", got.UserID.Bytes, want.UserID.Bytes)
 	}
+}
+
+func TestGetTokenByHash(t *testing.T) {
+	ctx := context.Background()
+	queries := initializeQueries(ctx)
+	repo := NewAuthRepo(queries)
+
+	tokenHash := "1d0c6a19d3602a7608a1a2218671c1d444ca415fc685cb9182c2584e9ce395b6"
+
+	got, err := repo.GetTokenByHash(ctx, tokenHash)
+	if err != nil {
+		log.Fatalf("Error getting token from database: %v", err)
+	}
+
+	testTokenID, err := uuid.Parse("aabfe0ac-3e13-4744-8a31-4073b69caa68")
+	if err != nil {
+		log.Fatalf("failed to parse the test token uuid: %v", err)
+	}
+	want := db.RefreshToken{
+		ID: pgtype.UUID{
+			Bytes: testTokenID,
+			Valid: true,
+		},
+	}
+
+	if got.ID.Bytes != want.ID.Bytes {
+		log.Fatalf("Read (%v) and expected (%v) user IDs did not match.", got.UserID.Bytes, want.UserID.Bytes)
+	}
+}
+
+func initializeQueries(ctx context.Context) *db.Queries {
+	err := godotenv.Load("../../.env")
+	if err != nil {
+		fmt.Printf("Error reading .env: %v", err)
+	}
+	dbURL := os.Getenv("POSTGRES_CONNECTION_STRING")
+	if dbURL == "" {
+		log.Fatal("DB_URL environment variable not set")
+	}
+
+	pool, err := pgxpool.New(ctx, dbURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return db.New(pool)
 }
