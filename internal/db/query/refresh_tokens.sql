@@ -8,5 +8,6 @@ SELECT * FROM refresh_tokens
 WHERE token_hash = $1;
 
 -- name: RevokeTokenByUserID :exec
-DELETE FROM refresh_tokens
+UPDATE refresh_tokens
+SET revoked = TRUE
 WHERE user_id = $1;

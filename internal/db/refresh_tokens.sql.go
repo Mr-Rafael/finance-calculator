@@ -63,7 +63,8 @@ func (q *Queries) GetTokenByHash(ctx context.Context, tokenHash string) (Refresh
 }
 
 const revokeTokenByUserID = `-- name: RevokeTokenByUserID :exec
-DELETE FROM refresh_tokens
+UPDATE refresh_tokens
+SET revoked = TRUE
 WHERE user_id = $1
 `
 

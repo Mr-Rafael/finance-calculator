@@ -2,17 +2,13 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/joho/godotenv"
 )
 
 func TestCreateRefreshToken(t *testing.T) {
@@ -70,20 +66,43 @@ func TestGetTokenByHash(t *testing.T) {
 	}
 }
 
-func initializeQueries(ctx context.Context) *db.Queries {
-	err := godotenv.Load("../../.env")
+func TestRevokeToken(t *testing.T) {
+	ctx := context.Background()
+	queries := initializeQueries(ctx)
+	repo := NewAuthRepo(queries)
+
+	test_user_id, err := uuid.Parse("af38df43-3ced-4869-9930-93a0fa0cf1e0")
 	if err != nil {
-		fmt.Printf("Error reading .env: %v", err)
-	}
-	dbURL := os.Getenv("POSTGRES_CONNECTION_STRING")
-	if dbURL == "" {
-		log.Fatal("DB_URL environment variable not set")
+		log.Fatalf("failed to parse the test user uuid: %v", err)
 	}
 
-	pool, err := pgxpool.New(ctx, dbURL)
+	user := pgtype.UUID{
+		Bytes: test_user_id,
+		Valid: true,
+	}
+	newToken, err := repo.CreateRefreshToken(ctx, user, "test_token", time.Now())
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error saving the refresh token in database: %v", err)
 	}
 
-	return db.New(pool)
+	err = repo.RevokeTokenByUserID(ctx, newToken.UserID)
+	if err != nil {
+		log.Fatalf("Error revoking refresh token: %v", err)
+	}
+
+	got, err := repo.GetTokenByHash(ctx, newToken.TokenHash)
+	if err != nil {
+		log.Fatalf("Error getting revoked token: %v", err)
+	}
+
+	want := db.RefreshToken{
+		Revoked: pgtype.Bool{
+			Bool:  true,
+			Valid: true,
+		},
+	}
+
+	if got.ID.Valid != want.ID.Valid {
+
+	}
 }
