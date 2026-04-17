@@ -194,3 +194,60 @@ func TestGetLoansByUser(t *testing.T) {
 		log.Fatalf("The number of loans before insert (%v) didn't match the number of loans after (%v)", want, got)
 	}
 }
+
+func TestDeleteLoan(t *testing.T) {
+	ctx := context.Background()
+	queries := initializeQueries(ctx)
+	repo := NewLoansRepo(queries)
+	test_user_id, err := uuid.Parse("af38df43-3ced-4869-9930-93a0fa0cf1e0")
+	if err != nil {
+		log.Fatalf("failed to parse the test user uuid: %v", err)
+	}
+
+	originalData := dto.LoanRequestParams{
+		StartingPrincipal:  0,
+		YearlyInterestRate: "0",
+		MonthlyPayment:     0,
+		EscrowPayment:      0,
+		StartDate:          "1970-01-01",
+	}
+	params := domain.LoanPaymentPlan{
+		ID:                  uuid.Nil,
+		UserID:              test_user_id,
+		Name:                "test",
+		OriginalData:        domain.LoansInput(originalData),
+		StartingPrincipal:   decimal.Zero,
+		CurrentPrincipal:    decimal.Zero,
+		InterestMultiplierM: decimal.Zero,
+		PaymentM:            decimal.Zero,
+		EscrowM:             decimal.Zero,
+		Date:                time.Now(),
+		DurationMonths:      0,
+		TotalExpenditure:    decimal.Zero,
+		TotalPaid:           decimal.Zero,
+		CostOfCreditPercent: decimal.Zero,
+	}
+	loanInfo, err := repo.SaveLoanPaymentPlan(ctx, params)
+	if err != nil {
+		log.Fatalf("Error saving loan in database: %v", err)
+	}
+	deleteParams := db.DeleteLoanParams{
+		ID:     loanInfo.ID,
+		UserID: loanInfo.UserID,
+	}
+	err = repo.queries.DeleteLoan(ctx, deleteParams)
+	if err != nil {
+		log.Fatalf("Error deleting loan.")
+	}
+
+	getParams := db.GetLoanParams{
+		ID:     loanInfo.ID,
+		UserID: loanInfo.UserID,
+	}
+
+	_, got := repo.queries.GetLoan(ctx, getParams)
+
+	if got == nil {
+		log.Fatalf("The loan was not deleted.")
+	}
+}
