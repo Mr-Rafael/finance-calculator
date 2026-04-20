@@ -26,3 +26,7 @@ func (r *UsersRepo) GetUserByEmail(ctx context.Context, email string) (db.User, 
 func (r *UsersRepo) GetUserByID(ctx context.Context, id pgtype.UUID) (db.User, error) {
 	return r.queries.GetUserByID(ctx, id)
 }
+
+func (r *UsersRepo) DeleteUser(ctx context.Context, id pgtype.UUID) error {
+	return r.queries.DeleteUser(ctx, id)
+}
