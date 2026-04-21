@@ -9,15 +9,14 @@ import (
 
 	"github.com/Mr-Rafael/finance-calculator/internal/auth"
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
-	"github.com/Mr-Rafael/finance-calculator/internal/repository"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
-	authRepo      *repository.AuthRepo
-	usersRepo     *repository.UsersRepo
+	authRepo      AuthRepository
+	usersRepo     UsersRepository
 	accessSecret  string
 	refreshSecret string
 }
@@ -43,7 +42,20 @@ type RefreshInfo struct {
 	AccessToken string
 }
 
-func NewAuthService(authRepo *repository.AuthRepo, usersRepo *repository.UsersRepo, accessSecret string, refreshSecret string) *AuthService {
+type AuthRepository interface {
+	CreateRefreshToken(context.Context, pgtype.UUID, string, time.Time) (db.RefreshToken, error)
+	GetTokenByHash(context.Context, string) (db.RefreshToken, error)
+	RevokeTokenByUserID(ctx context.Context, id pgtype.UUID) error
+}
+
+type UsersRepository interface {
+	CreateUser(context.Context, db.CreateUserParams) (db.User, error)
+	GetUserByEmail(context.Context, string) (db.User, error)
+	GetUserByID(context.Context, pgtype.UUID) (db.User, error)
+	DeleteUser(context.Context, pgtype.UUID) error
+}
+
+func NewAuthService(authRepo AuthRepository, usersRepo UsersRepository, accessSecret string, refreshSecret string) *AuthService {
 	return &AuthService{
 		authRepo:      authRepo,
 		usersRepo:     usersRepo,
