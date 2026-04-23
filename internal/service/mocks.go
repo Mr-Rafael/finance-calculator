@@ -29,14 +29,14 @@ func (m *MockAuthRepo) CreateRefreshToken(ctx context.Context, userID pgtype.UUI
 }
 
 func (m *MockAuthRepo) GetTokenByHash(ctx context.Context, hash string) (db.RefreshToken, error) {
-	if m.CreateRefreshTokenFunc != nil {
+	if m.GetTokenByHashFunc != nil {
 		return m.GetTokenByHashFunc(ctx, hash)
 	}
 	return db.RefreshToken{}, nil
 }
 
 func (m *MockAuthRepo) RevokeTokenByUserID(ctx context.Context, id pgtype.UUID) error {
-	if m.CreateRefreshTokenFunc != nil {
+	if m.RevokeTokenByUserIDFunc != nil {
 		return m.RevokeTokenByUserIDFunc(ctx, id)
 	}
 	return nil
@@ -50,14 +50,14 @@ func (m *MockUsersRepo) CreateUser(ctx context.Context, params db.CreateUserPara
 }
 
 func (m *MockUsersRepo) GetUserByEmail(ctx context.Context, email string) (db.User, error) {
-	if m.CreateUserFunc != nil {
+	if m.GetUserByEmailFunc != nil {
 		return m.GetUserByEmailFunc(ctx, email)
 	}
 	return db.User{}, nil
 }
 
 func (m *MockUsersRepo) GetUserByID(ctx context.Context, id pgtype.UUID) (db.User, error) {
-	if m.CreateUserFunc != nil {
+	if m.GetUserByIDFunc != nil {
 		return m.GetUserByIDFunc(ctx, id)
 	}
 	return db.User{}, nil

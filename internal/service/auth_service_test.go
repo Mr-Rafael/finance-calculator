@@ -9,6 +9,7 @@ import (
 	"github.com/Mr-Rafael/finance-calculator/internal/auth"
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -126,9 +127,7 @@ func TestLogin(t *testing.T) {
 	mockAccessSecret := "ACCESS"
 	mockRefreshSecret := "REFRESH"
 	ctx := context.Background()
-	mockUserID := "001"
-	var mockUserIDBytes [16]byte
-	copy(mockUserIDBytes[:], mockUserID)
+	mockUserID := uuid.Nil
 
 	mockAuthRepo := &MockAuthRepo{
 		CreateRefreshTokenFunc: func(ctx context.Context, userID pgtype.UUID, tokenHash string, expDate time.Time) (db.RefreshToken, error) {
@@ -141,7 +140,7 @@ func TestLogin(t *testing.T) {
 		GetUserByEmailFunc: func(ctx context.Context, email string) (db.User, error) {
 			return db.User{
 				ID: pgtype.UUID{
-					Bytes: mockUserIDBytes,
+					Bytes: mockUserID,
 					Valid: true,
 				},
 				PasswordHash: "$2a$10$olKeSVnknIIssUqv85e5wuH3dTMgNjjX1OClqan2TTpVe2tWoHIea",
@@ -162,17 +161,17 @@ func TestLogin(t *testing.T) {
 
 	tokenUserID, err := service.ValidateAccessToken(got.AccessToken)
 	if err != nil {
-		log.Fatalf("Login function returned an invalid access token: %v", got.AccessToken)
+		log.Fatalf("Login function returned an invalid access token: %v", err)
 	}
-	if tokenUserID != mockUserID {
-		log.Fatalf("Login function returned an access token with the incorrect User ID: %v", tokenUserID)
+	if tokenUserID != mockUserID.String() {
+		log.Fatalf("Login function returned an access token with the incorrect User ID: %v. As a string: %v", tokenUserID, string(tokenUserID))
 	}
 
-	tokenUserID, err = service.ValidateAccessToken(got.RefreshToken)
+	tokenUserID, err = service.ValidateRefreshToken(got.RefreshToken)
 	if err != nil {
-		log.Fatalf("Login function returned an invalid refresh token: %v", got.AccessToken)
+		log.Fatalf("Login function returned an invalid refresh token |%v|: %v", got.RefreshToken, err)
 	}
-	if tokenUserID != mockUserID {
+	if tokenUserID != mockUserID.String() {
 		log.Fatalf("Login function returned a refresh token with the incorrect User ID: %v", tokenUserID)
 	}
 }

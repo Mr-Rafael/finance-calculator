@@ -39,8 +39,8 @@ func GenerateRefreshToken(userID string, secret string) (string, time.Time, erro
 	claims := RefreshClaims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(issuedAt),
-			IssuedAt:  jwt.NewNumericDate(expiresAt),
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
+			IssuedAt:  jwt.NewNumericDate(issuedAt),
 			Issuer:    "savings-app",
 			Subject:   userID,
 		},

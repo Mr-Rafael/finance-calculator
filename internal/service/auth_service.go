@@ -96,6 +96,38 @@ func (s *AuthService) ValidateAccessToken(tokenString string) (string, error) {
 	return userID, nil
 }
 
+func (s *AuthService) ValidateRefreshToken(tokenString string) (string, error) {
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+
+		return []byte(s.refreshSecret), nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	if !token.Valid {
+		return "", errors.New("invalid token")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", errors.New("invalid claims")
+	}
+
+	userID, ok := claims["sub"].(string)
+	if !ok {
+		return "", errors.New("invalid user id in token")
+	}
+
+	return userID, nil
+}
+
 func (s *AuthService) Login(ctx context.Context, input LoginInput) (LoginInfo, error) {
 	userInfo, err := s.usersRepo.GetUserByEmail(ctx, input.Email)
 	if err != nil {
@@ -104,7 +136,7 @@ func (s *AuthService) Login(ctx context.Context, input LoginInput) (LoginInfo, e
 
 	err = bcrypt.CompareHashAndPassword([]byte(userInfo.PasswordHash), []byte(input.Password))
 	if err != nil {
-		return LoginInfo{}, fmt.Errorf("password hash mismatch: got user info: |id: %v| |hash: %v|", string(userInfo.PasswordHash), userInfo.PasswordHash)
+		return LoginInfo{}, fmt.Errorf("password hash mismatch: got user info.")
 	}
 
 	accessToken, err := auth.GenerateAccessToken(userInfo.ID.String(), s.accessSecret)
