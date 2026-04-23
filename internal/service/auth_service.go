@@ -97,11 +97,14 @@ func (s *AuthService) ValidateAccessToken(tokenString string) (string, error) {
 }
 
 func (s *AuthService) Login(ctx context.Context, input LoginInput) (LoginInfo, error) {
-	userInfo, err := s.usersRepo.GetUserByEmail(context.Background(), input.Email)
+	userInfo, err := s.usersRepo.GetUserByEmail(ctx, input.Email)
+	if err != nil {
+		return LoginInfo{}, fmt.Errorf("failed login attempt for user: %v. user not found", input.Email)
+	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(userInfo.PasswordHash), []byte(input.Password))
 	if err != nil {
-		return LoginInfo{}, fmt.Errorf("password hash mismatch")
+		return LoginInfo{}, fmt.Errorf("password hash mismatch: got user info: |id: %v| |hash: %v|", string(userInfo.PasswordHash), userInfo.PasswordHash)
 	}
 
 	accessToken, err := auth.GenerateAccessToken(userInfo.ID.String(), s.accessSecret)

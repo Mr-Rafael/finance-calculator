@@ -1,12 +1,15 @@
 package service
 
 import (
+	"context"
 	"log"
 	"testing"
 	"time"
 
 	"github.com/Mr-Rafael/finance-calculator/internal/auth"
+	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func TestValidateAccessToken(t *testing.T) {
@@ -116,5 +119,60 @@ func TestValidateInvalidSignature(t *testing.T) {
 	_, err = service.ValidateAccessToken(signedToken)
 	if err == nil {
 		log.Fatalf("Validate function wrongly signed token as valid.")
+	}
+}
+
+func TestLogin(t *testing.T) {
+	mockAccessSecret := "ACCESS"
+	mockRefreshSecret := "REFRESH"
+	ctx := context.Background()
+	mockUserID := "001"
+	var mockUserIDBytes [16]byte
+	copy(mockUserIDBytes[:], mockUserID)
+
+	mockAuthRepo := &MockAuthRepo{
+		CreateRefreshTokenFunc: func(ctx context.Context, userID pgtype.UUID, tokenHash string, expDate time.Time) (db.RefreshToken, error) {
+			return db.RefreshToken{
+				TokenHash: "TOKENHASH",
+			}, nil
+		},
+	}
+	mockUsersRepo := &MockUsersRepo{
+		GetUserByEmailFunc: func(ctx context.Context, email string) (db.User, error) {
+			return db.User{
+				ID: pgtype.UUID{
+					Bytes: mockUserIDBytes,
+					Valid: true,
+				},
+				PasswordHash: "$2a$10$olKeSVnknIIssUqv85e5wuH3dTMgNjjX1OClqan2TTpVe2tWoHIea",
+			}, nil
+		},
+	}
+	service := NewAuthService(mockAuthRepo, mockUsersRepo, mockAccessSecret, mockRefreshSecret)
+
+	input := LoginInput{
+		Email:    "test2@mail.com",
+		Password: "password",
+	}
+
+	got, err := service.Login(ctx, input)
+	if err != nil {
+		log.Fatalf("Failed to log in with the test user: %v", err)
+	}
+
+	tokenUserID, err := service.ValidateAccessToken(got.AccessToken)
+	if err != nil {
+		log.Fatalf("Login function returned an invalid access token: %v", got.AccessToken)
+	}
+	if tokenUserID != mockUserID {
+		log.Fatalf("Login function returned an access token with the incorrect User ID: %v", tokenUserID)
+	}
+
+	tokenUserID, err = service.ValidateAccessToken(got.RefreshToken)
+	if err != nil {
+		log.Fatalf("Login function returned an invalid refresh token: %v", got.AccessToken)
+	}
+	if tokenUserID != mockUserID {
+		log.Fatalf("Login function returned a refresh token with the incorrect User ID: %v", tokenUserID)
 	}
 }
