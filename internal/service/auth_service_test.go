@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"testing"
 	"time"
@@ -174,4 +175,185 @@ func TestLogin(t *testing.T) {
 	if tokenUserID != mockUserID.String() {
 		log.Fatalf("Login function returned a refresh token with the incorrect User ID: %v", tokenUserID)
 	}
+}
+
+func TestLoginBadUsername(t *testing.T) {
+	mockAccessSecret := "ACCESS"
+	mockRefreshSecret := "REFRESH"
+	ctx := context.Background()
+
+	mockAuthRepo := &MockAuthRepo{
+		CreateRefreshTokenFunc: func(ctx context.Context, userID pgtype.UUID, tokenHash string, expDate time.Time) (db.RefreshToken, error) {
+			return db.RefreshToken{
+				TokenHash: "TOKENHASH",
+			}, nil
+		},
+	}
+	mockUsersRepo := &MockUsersRepo{
+		GetUserByEmailFunc: func(ctx context.Context, email string) (db.User, error) {
+			return db.User{}, fmt.Errorf("User not found.")
+		},
+	}
+	service := NewAuthService(mockAuthRepo, mockUsersRepo, mockAccessSecret, mockRefreshSecret)
+
+	input := LoginInput{
+		Email:    "test2@mail.com",
+		Password: "password",
+	}
+
+	_, err := service.Login(ctx, input)
+	if err == nil {
+		log.Fatalf("The login should have failed because the user doesn't exist, but it did not.")
+	}
+}
+
+func TestLoginBadPassword(t *testing.T) {
+	mockAccessSecret := "ACCESS"
+	mockRefreshSecret := "REFRESH"
+	ctx := context.Background()
+	mockUserID := uuid.Nil
+
+	mockAuthRepo := &MockAuthRepo{
+		CreateRefreshTokenFunc: func(ctx context.Context, userID pgtype.UUID, tokenHash string, expDate time.Time) (db.RefreshToken, error) {
+			return db.RefreshToken{
+				TokenHash: "TOKENHASH",
+			}, nil
+		},
+	}
+	mockUsersRepo := &MockUsersRepo{
+		GetUserByEmailFunc: func(ctx context.Context, email string) (db.User, error) {
+			return db.User{
+				ID: pgtype.UUID{
+					Bytes: mockUserID,
+					Valid: true,
+				},
+				PasswordHash: "$2a$10$olKeSVnknIIssUqv85e5wuH3dTMgNjjX1OClqan2TTpVe2tWoHIeb",
+			}, nil
+		},
+	}
+	service := NewAuthService(mockAuthRepo, mockUsersRepo, mockAccessSecret, mockRefreshSecret)
+
+	input := LoginInput{
+		Email:    "test2@mail.com",
+		Password: "password",
+	}
+
+	_, err := service.Login(ctx, input)
+	if err == nil {
+		log.Fatalf("The login should have failed due to password mismatch, but it did not.")
+	}
+}
+
+func TestRefresh(t *testing.T) {
+	mockAccessSecret := "ACCESS"
+	mockRefreshSecret := "REFRESH"
+	ctx := context.Background()
+	mockUserID := uuid.Nil
+	want := mockUserID.String()
+
+	mockAuthRepo := &MockAuthRepo{
+		GetTokenByHashFunc: func(ctx context.Context, hash string) (db.RefreshToken, error) {
+			return db.RefreshToken{
+				ID: pgtype.UUID{
+					Bytes: mockUserID,
+					Valid: true,
+				},
+				UserID: pgtype.UUID{
+					Bytes: mockUserID,
+					Valid: true,
+				},
+				Revoked: pgtype.Bool{
+					Bool:  false,
+					Valid: true,
+				},
+				ExpiresAt: pgtype.Timestamptz{
+					Time:  time.Now().Add(1 * time.Minute),
+					Valid: true,
+				},
+			}, nil
+		},
+	}
+	mockUsersRepo := &MockUsersRepo{}
+
+	service := NewAuthService(mockAuthRepo, mockUsersRepo, mockAccessSecret, mockRefreshSecret)
+
+	input := RefreshInput{
+		RefreshToken: "refreshtoken",
+	}
+	tokenInfo, err := service.Refresh(ctx, input)
+	if err != nil {
+		log.Fatalf("There was an error generating the refresh token: %v", err)
+	}
+	got, err := service.ValidateAccessToken(tokenInfo.AccessToken)
+	if err != nil {
+		log.Fatalf("The generated access token was invalid: %v", err)
+	}
+	if got != want {
+		log.Fatalf("Expected user ID | %v |, but got |%v|.", want, got)
+	}
+}
+
+func TestRefreshExpiredToken(t *testing.T) {
+	mockAccessSecret := "ACCESS"
+	mockRefreshSecret := "REFRESH"
+	ctx := context.Background()
+	mockUserID := uuid.Nil
+
+	mockAuthRepo := &MockAuthRepo{
+		GetTokenByHashFunc: func(ctx context.Context, hash string) (db.RefreshToken, error) {
+			return db.RefreshToken{
+				ID: pgtype.UUID{
+					Bytes: mockUserID,
+					Valid: true,
+				},
+				UserID: pgtype.UUID{
+					Bytes: mockUserID,
+					Valid: true,
+				},
+				Revoked: pgtype.Bool{
+					Bool:  false,
+					Valid: true,
+				},
+				ExpiresAt: pgtype.Timestamptz{
+					Time:  time.Now().Add(-1 * time.Minute),
+					Valid: true,
+				},
+			}, nil
+		},
+	}
+	mockUsersRepo := &MockUsersRepo{}
+
+	service := NewAuthService(mockAuthRepo, mockUsersRepo, mockAccessSecret, mockRefreshSecret)
+
+	input := RefreshInput{
+		RefreshToken: "refreshtoken",
+	}
+	_, err := service.Refresh(ctx, input)
+	if err == nil {
+		log.Fatal("Expected the refresh function to fail with an expired refresh token, but it didn't.")
+	}
+}
+
+func TestRefreshNotFound(t *testing.T) {
+	mockAccessSecret := "ACCESS"
+	mockRefreshSecret := "REFRESH"
+	ctx := context.Background()
+
+	mockAuthRepo := &MockAuthRepo{
+		GetTokenByHashFunc: func(ctx context.Context, hash string) (db.RefreshToken, error) {
+			return db.RefreshToken{}, fmt.Errorf("token not found.")
+		},
+	}
+	mockUsersRepo := &MockUsersRepo{}
+
+	service := NewAuthService(mockAuthRepo, mockUsersRepo, mockAccessSecret, mockRefreshSecret)
+
+	input := RefreshInput{
+		RefreshToken: "refreshtoken",
+	}
+	_, err := service.Refresh(ctx, input)
+	if err == nil {
+		log.Fatal("Expected the refresh function to fail when the token is not found, but it didn't.")
+	}
+
 }

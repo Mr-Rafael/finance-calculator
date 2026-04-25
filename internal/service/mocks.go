@@ -5,20 +5,29 @@ import (
 	"time"
 
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
+	"github.com/Mr-Rafael/finance-calculator/internal/domain"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type MockAuthRepo struct {
-	CreateRefreshTokenFunc  func(ctx context.Context, userID pgtype.UUID, tokenHash string, expDate time.Time) (db.RefreshToken, error)
-	GetTokenByHashFunc      func(ctx context.Context, hash string) (db.RefreshToken, error)
-	RevokeTokenByUserIDFunc func(ctx context.Context, id pgtype.UUID) error
+	CreateRefreshTokenFunc  func(context.Context, pgtype.UUID, string, time.Time) (db.RefreshToken, error)
+	GetTokenByHashFunc      func(context.Context, string) (db.RefreshToken, error)
+	RevokeTokenByUserIDFunc func(context.Context, pgtype.UUID) error
 }
 
 type MockUsersRepo struct {
-	CreateUserFunc     func(ctx context.Context, params db.CreateUserParams) (db.User, error)
-	GetUserByEmailFunc func(ctx context.Context, email string) (db.User, error)
-	GetUserByIDFunc    func(ctx context.Context, id pgtype.UUID) (db.User, error)
-	DeleteUserFunc     func(ctx context.Context, id pgtype.UUID) error
+	CreateUserFunc     func(context.Context, db.CreateUserParams) (db.User, error)
+	GetUserByEmailFunc func(context.Context, string) (db.User, error)
+	GetUserByIDFunc    func(context.Context, pgtype.UUID) (db.User, error)
+	DeleteUserFunc     func(context.Context, pgtype.UUID) error
+}
+
+type MockLoansRepo struct {
+	SaveLoanPaymentPlanFunc       func(context.Context, domain.LoanPaymentPlan) (db.Loan, error)
+	GetLoanPaymentPlansByUserFunc func(context.Context, uuid.UUID) ([]db.GetLoansByUserIDRow, error)
+	GetLoanByIDFunc               func(context.Context, uuid.UUID, uuid.UUID) (domain.LoanPaymentPlan, error)
+	DeleteLoanFunc                func(ctx context.Context, loanID uuid.UUID, userID uuid.UUID) error
 }
 
 func (m *MockAuthRepo) CreateRefreshToken(ctx context.Context, userID pgtype.UUID, tokenHash string, expDate time.Time) (db.RefreshToken, error) {
@@ -66,6 +75,34 @@ func (m *MockUsersRepo) GetUserByID(ctx context.Context, id pgtype.UUID) (db.Use
 func (m *MockUsersRepo) DeleteUser(ctx context.Context, id pgtype.UUID) error {
 	if m.DeleteUserFunc != nil {
 		return m.DeleteUserFunc(ctx, id)
+	}
+	return nil
+}
+
+func (m *MockLoansRepo) SaveLoanPaymentPlan(ctx context.Context, plan domain.LoanPaymentPlan) (db.Loan, error) {
+	if m.SaveLoanPaymentPlanFunc != nil {
+		return m.SaveLoanPaymentPlanFunc(ctx, plan)
+	}
+	return db.Loan{}, nil
+}
+
+func (m *MockLoansRepo) GetLoanPaymentPlansByUser(ctx context.Context, id uuid.UUID) ([]db.GetLoansByUserIDRow, error) {
+	if m.GetLoanPaymentPlansByUserFunc != nil {
+		return m.GetLoanPaymentPlansByUserFunc(ctx, id)
+	}
+	return nil, nil
+}
+
+func (m *MockLoansRepo) GetLoanByID(ctx context.Context, loanID uuid.UUID, userID uuid.UUID) (domain.LoanPaymentPlan, error) {
+	if m.GetLoanByIDFunc != nil {
+		return m.GetLoanByIDFunc(ctx, loanID, userID)
+	}
+	return domain.LoanPaymentPlan{}, nil
+}
+
+func (m *MockLoansRepo) DeleteLoan(ctx context.Context, loanID uuid.UUID, userID uuid.UUID) error {
+	if m.GetLoanByIDFunc != nil {
+		return m.DeleteLoanFunc(ctx, loanID, userID)
 	}
 	return nil
 }
