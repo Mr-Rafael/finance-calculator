@@ -17,12 +17,8 @@ import (
 func TestValidateAccessToken(t *testing.T) {
 	mockAccessSecret := "ACCESS"
 	mockRefreshSecret := "REFRESH"
-	mockAuthRepo := &MockAuthRepo{
-		CreateRefreshTokenFunc: nil,
-	}
-	mockUsersRepo := &MockUsersRepo{
-		CreateUserFunc: nil,
-	}
+	mockAuthRepo := &MockAuthRepo{}
+	mockUsersRepo := &MockUsersRepo{}
 	service := NewAuthService(mockAuthRepo, mockUsersRepo, mockAccessSecret, mockRefreshSecret)
 
 	want := "001"

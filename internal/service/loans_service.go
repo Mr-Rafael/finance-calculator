@@ -7,16 +7,22 @@ import (
 
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/Mr-Rafael/finance-calculator/internal/domain"
-	"github.com/Mr-Rafael/finance-calculator/internal/repository"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
 
 type LoansService struct {
-	loansRepo *repository.LoansRepo
+	loansRepo LoansRepository
 }
 
-func NewLoansService(repo *repository.LoansRepo) *LoansService {
+type LoansRepository interface {
+	SaveLoanPaymentPlan(context.Context, domain.LoanPaymentPlan) (db.Loan, error)
+	GetLoanPaymentPlansByUser(context.Context, uuid.UUID) ([]db.GetLoansByUserIDRow, error)
+	GetLoanByID(context.Context, uuid.UUID, uuid.UUID) (domain.LoanPaymentPlan, error)
+	DeleteLoan(context.Context, uuid.UUID, uuid.UUID) error
+}
+
+func NewLoansService(repo LoansRepository) *LoansService {
 	return &LoansService{loansRepo: repo}
 }
 
