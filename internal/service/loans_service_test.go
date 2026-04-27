@@ -14,7 +14,7 @@ func TestCalculateLoanPaymentPlan(t *testing.T) {
 	input := domain.LoansInput{
 		StartingPrincipal:  10000000,
 		YearlyInterestRate: "5",
-		MonthlyPayment:     865840,
+		MonthlyPayment:     900076,
 		EscrowPayment:      10000,
 		StartDate:          "1970-01-01",
 	}
@@ -25,10 +25,73 @@ func TestCalculateLoanPaymentPlan(t *testing.T) {
 	}
 
 	want := domain.LoanPaymentPlan{
-		DurationMonths: 13,
+		DurationMonths: 12,
 	}
 
 	if got.DurationMonths != want.DurationMonths {
 		log.Fatalf("Expected a duration of %v months, but got %v.", want.DurationMonths, got.DurationMonths)
+	}
+}
+
+func TestCalculateLoanMaxTerm(t *testing.T) {
+	mockLoansRepo := &MockLoansRepo{}
+	service := NewLoansService(mockLoansRepo)
+	maxLoanTerm := 360
+
+	input := domain.LoansInput{
+		StartingPrincipal:  10000000,
+		YearlyInterestRate: "5",
+		MonthlyPayment:     63683,
+		EscrowPayment:      10000,
+		StartDate:          "1970-01-01",
+	}
+
+	got, err := service.CalculateLoanPaymentPlan(input)
+	if err != nil {
+		log.Fatalf("Error calculating the loan payment plan.")
+	}
+
+	want := domain.LoanPaymentPlan{
+		DurationMonths: maxLoanTerm,
+	}
+
+	if got.DurationMonths != want.DurationMonths {
+		log.Fatalf("Expected a duration of %v months, but got %v.", want.DurationMonths, got.DurationMonths)
+	}
+}
+
+func TestCalculateLoanTermTooLong(t *testing.T) {
+	mockLoansRepo := &MockLoansRepo{}
+	service := NewLoansService(mockLoansRepo)
+
+	input := domain.LoansInput{
+		StartingPrincipal:  10000000,
+		YearlyInterestRate: "5",
+		MonthlyPayment:     63682,
+		EscrowPayment:      10000,
+		StartDate:          "1970-01-01",
+	}
+
+	_, err := service.CalculateLoanPaymentPlan(input)
+	if err == nil {
+		log.Fatalf("Expected the loan calcuation to fail due to the term being longer than 360 months, but it didn't.")
+	}
+}
+
+func TestCalculateLoanPrincipalTooHigh(t *testing.T) {
+	mockLoansRepo := &MockLoansRepo{}
+	service := NewLoansService(mockLoansRepo)
+
+	input := domain.LoansInput{
+		StartingPrincipal:  100000000001,
+		YearlyInterestRate: "1",
+		MonthlyPayment:     1,
+		EscrowPayment:      0,
+		StartDate:          "1970-01-01",
+	}
+
+	_, err := service.CalculateLoanPaymentPlan(input)
+	if err == nil {
+		log.Fatalf("Expected the loan calculation to fail due to starting principal being larger than the accepted amount (100000000000), but it didn't.")
 	}
 }

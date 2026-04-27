@@ -62,7 +62,6 @@ func (p *LoanPaymentPlan) PassMonth() LoanStatus {
 
 func (p *LoanPaymentPlan) GenerateInterest(s LoanStatus) LoanStatus {
 	interest := p.CurrentPrincipal.Mul(p.InterestMultiplierM)
-	p.CurrentPrincipal = p.CurrentPrincipal.Add(interest)
 	p.TotalExpenditure = p.TotalExpenditure.Add(interest)
 
 	s.Interest = interest
@@ -70,7 +69,6 @@ func (p *LoanPaymentPlan) GenerateInterest(s LoanStatus) LoanStatus {
 }
 
 func (p *LoanPaymentPlan) ChargeEscrow(s LoanStatus) LoanStatus {
-	p.CurrentPrincipal = p.CurrentPrincipal.Add(p.EscrowM)
 	p.TotalExpenditure = p.TotalExpenditure.Add(p.EscrowM)
 
 	s.OtherPayments = p.EscrowM
