@@ -32,6 +32,7 @@ func (handler *LoanHandler) HandleCalculateLoan(writer http.ResponseWriter, requ
 	result, err := handler.loanService.CalculateLoanPaymentPlan(mapper.ToLoanInput(reqParams))
 	if err != nil {
 		respondWithError(writer, fmt.Sprintf("Error calculating loan payment plan: %v", err), fmt.Sprintf("Error calculating loan payment plan: %v", err), http.StatusInternalServerError)
+		return
 	}
 	respondWithJSON(writer, mapper.ToLoanResponse(result), http.StatusOK)
 }

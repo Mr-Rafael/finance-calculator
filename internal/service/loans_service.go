@@ -149,6 +149,11 @@ func initializePaymentPlan(input domain.LoansInput, userID uuid.UUID, name strin
 	}
 	plan.Date = startDate
 
+	err = checkIfEnoughMonthlyPayment(plan)
+	if err != nil {
+		return domain.LoanPaymentPlan{}, err
+	}
+
 	return plan, nil
 }
 
@@ -161,4 +166,15 @@ func toLoanInput(input domain.SaveLoanInput) domain.LoansInput {
 		StartDate:          input.StartDate,
 	}
 
+}
+
+func checkIfEnoughMonthlyPayment(plan domain.LoanPaymentPlan) error {
+	firstMonthInterest := plan.StartingPrincipal.Mul(plan.InterestMultiplierM)
+	minPayment := firstMonthInterest.Add(plan.EscrowM)
+	aHundred := decimal.NewFromInt32(100)
+
+	if plan.PaymentM.Compare(minPayment) != 1 {
+		return fmt.Errorf("The monthly payment is not enough to cover interest and escrow payment for the first month (total $%v). Please enter a higher monthly payment.", minPayment.Div(aHundred).Round(2).String())
+	}
+	return nil
 }

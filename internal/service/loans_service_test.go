@@ -2,6 +2,7 @@ package service
 
 import (
 	"log"
+	"strings"
 	"testing"
 
 	"github.com/Mr-Rafael/finance-calculator/internal/domain"
@@ -93,5 +94,77 @@ func TestCalculateLoanPrincipalTooHigh(t *testing.T) {
 	_, err := service.CalculateLoanPaymentPlan(input)
 	if err == nil {
 		log.Fatalf("Expected the loan calculation to fail due to starting principal being larger than the accepted amount (100000000000), but it didn't.")
+	}
+}
+
+func TestCalculateLoanInterestTooHigh(t *testing.T) {
+	mockLoansRepo := &MockLoansRepo{}
+	service := NewLoansService(mockLoansRepo)
+
+	input := domain.LoansInput{
+		StartingPrincipal:  100,
+		YearlyInterestRate: "101",
+		MonthlyPayment:     1,
+		EscrowPayment:      0,
+		StartDate:          "1970-01-01",
+	}
+
+	_, err := service.CalculateLoanPaymentPlan(input)
+	if err == nil {
+		log.Fatalf("Expected the loan calculation to fail due to the interest rate being higher than valid percent (100%% yearly), but it didn't.")
+	}
+}
+
+func TestCalculateLoanMonthlyPaymentTooLow(t *testing.T) {
+	mockLoansRepo := &MockLoansRepo{}
+	service := NewLoansService(mockLoansRepo)
+
+	input := domain.LoansInput{
+		StartingPrincipal:  10000000,
+		YearlyInterestRate: "5",
+		MonthlyPayment:     51666,
+		EscrowPayment:      10000,
+		StartDate:          "1970-01-01",
+	}
+
+	_, err := service.CalculateLoanPaymentPlan(input)
+	if !strings.Contains(err.Error(), "not enough to cover interest and escrow payment") {
+		log.Fatalf("Expected the loan calculation to fail due to the monthly payment (%v cents) not even covering interest and escrow, but it didn't.", input.MonthlyPayment)
+	}
+}
+
+func TestCalculateLoanEscrowTooHigh(t *testing.T) {
+	mockLoansRepo := &MockLoansRepo{}
+	service := NewLoansService(mockLoansRepo)
+
+	input := domain.LoansInput{
+		StartingPrincipal:  100,
+		YearlyInterestRate: "1",
+		MonthlyPayment:     1,
+		EscrowPayment:      100000000001,
+		StartDate:          "1970-01-01",
+	}
+
+	_, err := service.CalculateLoanPaymentPlan(input)
+	if err == nil {
+		log.Fatalf("Expected the loan calculation to fail due to escrow payment being higher than the valid amount (100000000000 cents), but it didn't.")
+	}
+}
+
+func TestCalculateLoanInvalidDateFormat(t *testing.T) {
+	mockLoansRepo := &MockLoansRepo{}
+	service := NewLoansService(mockLoansRepo)
+
+	input := domain.LoansInput{
+		StartingPrincipal:  100,
+		YearlyInterestRate: "1",
+		MonthlyPayment:     1,
+		EscrowPayment:      100000000001,
+		StartDate:          "1970-01-01",
+	}
+
+	_, err := service.CalculateLoanPaymentPlan(input)
+	if err == nil {
+		log.Fatalf("Expected the loan calculation to fail due to escrow payment being higher than the valid amount (100000000000 cents), but it didn't.")
 	}
 }
