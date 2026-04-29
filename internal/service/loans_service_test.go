@@ -61,6 +61,33 @@ func TestCalculateLoanMaxTerm(t *testing.T) {
 	}
 }
 
+func TestCalculateLoanMinTerm(t *testing.T) {
+	mockLoansRepo := &MockLoansRepo{}
+	service := NewLoansService(mockLoansRepo)
+	minLoanTerm := 1
+
+	input := domain.LoansInput{
+		StartingPrincipal:  1000000,
+		YearlyInterestRate: "5",
+		MonthlyPayment:     1014167,
+		EscrowPayment:      10000,
+		StartDate:          "1970-01-01",
+	}
+
+	got, err := service.CalculateLoanPaymentPlan(input)
+	if err != nil {
+		log.Fatalf("Error calculating the loan payment plan.")
+	}
+
+	want := domain.LoanPaymentPlan{
+		DurationMonths: minLoanTerm,
+	}
+
+	if got.DurationMonths != want.DurationMonths {
+		log.Fatalf("Expected a duration of %v month, but got %v.", want.DurationMonths, got.DurationMonths)
+	}
+}
+
 func TestCalculateLoanTermTooLong(t *testing.T) {
 	mockLoansRepo := &MockLoansRepo{}
 	service := NewLoansService(mockLoansRepo)
@@ -76,6 +103,32 @@ func TestCalculateLoanTermTooLong(t *testing.T) {
 	_, err := service.CalculateLoanPaymentPlan(input)
 	if err == nil {
 		log.Fatalf("Expected the loan calcuation to fail due to the term being longer than 360 months, but it didn't.")
+	}
+}
+
+func TestCalculateZeroInterestAndEscrow(t *testing.T) {
+	mockLoansRepo := &MockLoansRepo{}
+	service := NewLoansService(mockLoansRepo)
+
+	input := domain.LoansInput{
+		StartingPrincipal:  10000000,
+		YearlyInterestRate: "0",
+		MonthlyPayment:     1000000,
+		EscrowPayment:      0,
+		StartDate:          "1970-01-01",
+	}
+
+	got, err := service.CalculateLoanPaymentPlan(input)
+	if err != nil {
+		log.Fatalf("Error calculating the loan payment plan.")
+	}
+
+	want := domain.LoanPaymentPlan{
+		DurationMonths: 10,
+	}
+
+	if got.DurationMonths != want.DurationMonths {
+		log.Fatalf("Expected a duration of %v months, but got %v.", want.DurationMonths, got.DurationMonths)
 	}
 }
 
@@ -160,11 +213,11 @@ func TestCalculateLoanInvalidDateFormat(t *testing.T) {
 		YearlyInterestRate: "1",
 		MonthlyPayment:     1,
 		EscrowPayment:      100000000001,
-		StartDate:          "1970-01-01",
+		StartDate:          "01/01/1970",
 	}
 
 	_, err := service.CalculateLoanPaymentPlan(input)
 	if err == nil {
-		log.Fatalf("Expected the loan calculation to fail due to escrow payment being higher than the valid amount (100000000000 cents), but it didn't.")
+		log.Fatalf("Expected the loan calculation to fail due to invalid start date format, but it didn't.")
 	}
 }
