@@ -1,11 +1,15 @@
 package service
 
 import (
+	"context"
 	"log"
 	"strings"
 	"testing"
 
+	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/Mr-Rafael/finance-calculator/internal/domain"
+	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
 
 func TestCalculateLoanPaymentPlan(t *testing.T) {
@@ -219,5 +223,47 @@ func TestCalculateLoanInvalidDateFormat(t *testing.T) {
 	_, err := service.CalculateLoanPaymentPlan(input)
 	if err == nil {
 		log.Fatalf("Expected the loan calculation to fail due to invalid start date format, but it didn't.")
+	}
+}
+
+func TestSaveLoanPaymentPlan(t *testing.T) {
+	mockUserID := uuid.Nil
+	mockLoansRepo := &MockLoansRepo{
+		SaveLoanPaymentPlanFunc: func(ctx context.Context, plan domain.LoanPaymentPlan) (db.Loan, error) {
+			oneHundred := decimal.NewFromInt32(100)
+			return db.Loan{
+				DurationMonths: int32(plan.DurationMonths),
+				TotalPaid:      int32(plan.TotalPaid.Mul(oneHundred).Round(0).IntPart()),
+			}, nil
+		},
+	}
+	service := NewLoansService(mockLoansRepo)
+	ctx := context.Background()
+
+	input := domain.SaveLoanInput{
+		UserID:             mockUserID,
+		LoanName:           "test",
+		StartingPrincipal:  10000000,
+		YearlyInterestRate: "5",
+		MonthlyPayment:     900076,
+		EscrowPayment:      10000,
+		StartDate:          "1970-01-01",
+	}
+
+	want := db.Loan{
+		DurationMonths: 12,
+		TotalPaid:      1038341640,
+	}
+
+	got, err := service.SaveLoanPaymentPlan(ctx, input)
+	if err != nil {
+		log.Fatalf("Error saving the loan payment plan: %v", err)
+	}
+
+	if want.DurationMonths != got.DurationMonths {
+		log.Fatalf("Expected the saved duration months (%v) to be the same as the expected calculated ones (%v), but they weren't.", want.DurationMonths, got.DurationMonths)
+	}
+	if want.TotalPaid != got.TotalPaid {
+		log.Fatalf("Expected the saved total paid (%v) to be the same as the expected calculated one (%v), but it wasn't.", want.TotalPaid, got.TotalPaid)
 	}
 }
