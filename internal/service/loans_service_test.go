@@ -9,7 +9,6 @@ import (
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/Mr-Rafael/finance-calculator/internal/domain"
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 )
 
 func TestCalculateLoanPaymentPlan(t *testing.T) {
@@ -230,10 +229,9 @@ func TestSaveLoanPaymentPlan(t *testing.T) {
 	mockUserID := uuid.Nil
 	mockLoansRepo := &MockLoansRepo{
 		SaveLoanPaymentPlanFunc: func(ctx context.Context, plan domain.LoanPaymentPlan) (db.Loan, error) {
-			oneHundred := decimal.NewFromInt32(100)
 			return db.Loan{
 				DurationMonths: int32(plan.DurationMonths),
-				TotalPaid:      int32(plan.TotalPaid.Mul(oneHundred).Round(0).IntPart()),
+				TotalPaid:      int32(plan.TotalPaid.Round(0).IntPart()),
 			}, nil
 		},
 	}
@@ -252,7 +250,7 @@ func TestSaveLoanPaymentPlan(t *testing.T) {
 
 	want := db.Loan{
 		DurationMonths: 12,
-		TotalPaid:      1038341640,
+		TotalPaid:      10383416,
 	}
 
 	got, err := service.SaveLoanPaymentPlan(ctx, input)
