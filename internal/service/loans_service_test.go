@@ -230,8 +230,10 @@ func TestSaveLoanPaymentPlan(t *testing.T) {
 	mockLoansRepo := &MockLoansRepo{
 		SaveLoanPaymentPlanFunc: func(ctx context.Context, plan domain.LoanPaymentPlan) (db.Loan, error) {
 			return db.Loan{
-				DurationMonths: int32(plan.DurationMonths),
-				TotalPaid:      int32(plan.TotalPaid.Round(0).IntPart()),
+				DurationMonths:   int32(plan.DurationMonths),
+				TotalPaid:        int32(plan.TotalPaid.Round(0).IntPart()),
+				TotalExpenditure: int32(plan.TotalExpenditure.Round(0).IntPart()),
+				CostOfCredit:     plan.CostOfCreditPercent.String(),
 			}, nil
 		},
 	}
@@ -249,8 +251,10 @@ func TestSaveLoanPaymentPlan(t *testing.T) {
 	}
 
 	want := db.Loan{
-		DurationMonths: 12,
-		TotalPaid:      10383416,
+		DurationMonths:   12,
+		TotalPaid:        10383416,
+		TotalExpenditure: 383416,
+		CostOfCredit:     "1.0383416398261762",
 	}
 
 	got, err := service.SaveLoanPaymentPlan(ctx, input)
@@ -259,9 +263,15 @@ func TestSaveLoanPaymentPlan(t *testing.T) {
 	}
 
 	if want.DurationMonths != got.DurationMonths {
-		log.Fatalf("Expected the saved duration months (%v) to be the same as the expected calculated ones (%v), but they weren't.", want.DurationMonths, got.DurationMonths)
+		log.Fatalf("Expected the duration in months saved on database (%v) to match the expected ones (%v), but they didn't.", got.DurationMonths, want.DurationMonths)
 	}
 	if want.TotalPaid != got.TotalPaid {
-		log.Fatalf("Expected the saved total paid (%v) to be the same as the expected calculated one (%v), but it wasn't.", want.TotalPaid, got.TotalPaid)
+		log.Fatalf("Expected the total paid saved on database (%v cents) to match the expected one (%v cents), but it didn't.", got.TotalPaid, want.TotalPaid)
+	}
+	if want.TotalExpenditure != got.TotalExpenditure {
+		log.Fatalf("Expected the total expenditure saved on database (%v cents) to match the expected one (%v cents), but it didn't.", got.TotalExpenditure, want.TotalExpenditure)
+	}
+	if want.CostOfCredit != got.CostOfCredit {
+		log.Fatalf("Expected the cost of credit saved on database (%v%%) to match the expected one (%v%%), but it didn't.", got.CostOfCredit, want.CostOfCredit)
 	}
 }
