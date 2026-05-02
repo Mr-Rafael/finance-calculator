@@ -275,3 +275,22 @@ func TestSaveLoanPaymentPlan(t *testing.T) {
 		log.Fatalf("Expected the cost of credit saved on database (%v%%) to match the expected one (%v%%), but it didn't.", got.CostOfCredit, want.CostOfCredit)
 	}
 }
+
+func TestGetLoansByUserNoLoans(t *testing.T) {
+	mockUserID := uuid.Nil
+	mockLoansRepo := &MockLoansRepo{
+		GetLoanPaymentPlansByUserFunc: func(ctx context.Context, userID uuid.UUID) ([]db.GetLoansByUserIDRow, error) {
+			return nil, nil
+		},
+	}
+	service := NewLoansService(mockLoansRepo)
+	ctx := context.Background()
+
+	got, err := service.GetLoansByUser(ctx, mockUserID)
+	if err != nil {
+		log.Fatalf("Expected list loans to return no error when no loans were found for user, but it did return an error: %v", err)
+	}
+	if len(got) > 0 {
+		log.Fatalf("Expected list of loans to be null or empty, but it came with results.")
+	}
+}
