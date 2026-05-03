@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strings"
 	"testing"
@@ -292,5 +293,22 @@ func TestGetLoansByUserNoLoans(t *testing.T) {
 	}
 	if len(got) > 0 {
 		log.Fatalf("Expected list of loans to be null or empty, but it came with results.")
+	}
+}
+
+func TestGetLoanNotFound(t *testing.T) {
+	mockUserID := uuid.Nil
+	mockLoanID := uuid.Nil
+	mockLoansRepo := &MockLoansRepo{
+		GetLoanByIDFunc: func(ctx context.Context, loanID uuid.UUID, userID uuid.UUID) (domain.LoanPaymentPlan, error) {
+			return domain.LoanPaymentPlan{}, fmt.Errorf("attempt to fetch loan")
+		},
+	}
+	service := NewLoansService(mockLoansRepo)
+	ctx := context.Background()
+
+	_, err := service.loansRepo.GetLoanByID(ctx, mockLoanID, mockUserID)
+	if !strings.Contains(err.Error(), "attempt to fetch loan") {
+		log.Fatalf("Expected an error log due to the loan not being found, but the function didn't return it: %v", err)
 	}
 }
