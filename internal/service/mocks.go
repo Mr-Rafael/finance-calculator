@@ -30,6 +30,13 @@ type MockLoansRepo struct {
 	DeleteLoanFunc                func(ctx context.Context, loanID uuid.UUID, userID uuid.UUID) error
 }
 
+type MockSavingsRepo struct {
+	SaveSavingsPlanFunc       func(context.Context, domain.SavingsPlan) (db.Saving, error)
+	GetSavingsPlansByUserFunc func(context.Context, uuid.UUID) ([]db.GetSavingsByUserIDRow, error)
+	GetSavingsPlanByIDFunc    func(context.Context, uuid.UUID, uuid.UUID) (domain.SavingsPlan, error)
+	DeleteSavingsPlanFunc     func(context.Context, uuid.UUID, uuid.UUID) error
+}
+
 func (m *MockAuthRepo) CreateRefreshToken(ctx context.Context, userID pgtype.UUID, tokenHash string, expDate time.Time) (db.RefreshToken, error) {
 	if m.CreateRefreshTokenFunc != nil {
 		return m.CreateRefreshTokenFunc(ctx, userID, tokenHash, expDate)
@@ -103,6 +110,33 @@ func (m *MockLoansRepo) GetLoanByID(ctx context.Context, loanID uuid.UUID, userI
 func (m *MockLoansRepo) DeleteLoan(ctx context.Context, loanID uuid.UUID, userID uuid.UUID) error {
 	if m.GetLoanByIDFunc != nil {
 		return m.DeleteLoanFunc(ctx, loanID, userID)
+	}
+	return nil
+}
+
+func (m *MockSavingsRepo) SaveSavingsPlan(ctx context.Context, plan domain.SavingsPlan) (db.Saving, error) {
+	if m.SaveSavingsPlanFunc != nil {
+		return m.SaveSavingsPlanFunc(ctx, plan)
+	}
+	return db.Saving{}, nil
+}
+
+func (m *MockSavingsRepo) GetSavingsPlansByUser(ctx context.Context, userID uuid.UUID) ([]db.GetSavingsByUserIDRow, error) {
+	if m.GetSavingsPlansByUserFunc != nil {
+		return m.GetSavingsPlansByUserFunc(ctx, userID)
+	}
+	return nil, nil
+}
+
+func (m *MockSavingsRepo) GetSavingsPlanByID(ctx context.Context, planID uuid.UUID, userID uuid.UUID) (domain.SavingsPlan, error) {
+	if m.GetSavingsPlanByIDFunc != nil {
+		return m.GetSavingsPlanByIDFunc(ctx, planID, userID)
+	}
+	return domain.SavingsPlan{}, nil
+}
+func (m *MockSavingsRepo) DeleteSavingsPlan(ctx context.Context, planID uuid.UUID, userID uuid.UUID) error {
+	if m.DeleteSavingsPlanFunc != nil {
+		return m.DeleteSavingsPlanFunc(ctx, planID, userID)
 	}
 	return nil
 }

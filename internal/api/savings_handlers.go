@@ -29,7 +29,7 @@ func (handler *SavingsHandler) HandleCalculateSavings(writer http.ResponseWriter
 		return
 	}
 
-	result, err := handler.savingsService.CalculateSavingsPlan(context.Background(), mapper.ToSavingsInput(reqParams))
+	result, err := handler.savingsService.CalculateSavingsPlan(mapper.ToSavingsInput(reqParams))
 	if err != nil {
 		respondWithError(writer, fmt.Sprintf("Error calculating savings plan: %v", err), fmt.Sprintf("Error calculating savings plan: %v", err), http.StatusInternalServerError)
 	}

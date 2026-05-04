@@ -26,7 +26,7 @@ func TestCalculateLoanPaymentPlan(t *testing.T) {
 
 	got, err := service.CalculateLoanPaymentPlan(input)
 	if err != nil {
-		log.Fatalf("Error calculating the loan payment plan.")
+		log.Fatalf("Error calculating the loan payment plan: %v", err)
 	}
 
 	want := domain.LoanPaymentPlan{

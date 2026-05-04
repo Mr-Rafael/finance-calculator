@@ -7,13 +7,23 @@ import (
 
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
 	"github.com/Mr-Rafael/finance-calculator/internal/domain"
-	"github.com/Mr-Rafael/finance-calculator/internal/repository"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
 
 type SavingsService struct {
-	savingsRepo *repository.SavingsRepo
+	savingsRepo SavingsRepository
+}
+
+type SavingsRepository interface {
+	SaveSavingsPlan(context.Context, domain.SavingsPlan) (db.Saving, error)
+	GetSavingsPlansByUser(context.Context, uuid.UUID) ([]db.GetSavingsByUserIDRow, error)
+	GetSavingsPlanByID(context.Context, uuid.UUID, uuid.UUID) (domain.SavingsPlan, error)
+	DeleteSavingsPlan(context.Context, uuid.UUID, uuid.UUID) error
+}
+
+func NewSavingsService(repo SavingsRepository) *SavingsService {
+	return &SavingsService{savingsRepo: repo}
 }
 
 const minStartCapCents = "1"
@@ -27,11 +37,7 @@ const maxMonthContrib = "1000000000"
 const minTaxPercent = "0"
 const maxTaxPercent = "100"
 
-func NewSavingsService(repo *repository.SavingsRepo) *SavingsService {
-	return &SavingsService{savingsRepo: repo}
-}
-
-func (s *SavingsService) CalculateSavingsPlan(ctx context.Context, input domain.SavingsInput) (domain.SavingsPlan, error) {
+func (s *SavingsService) CalculateSavingsPlan(input domain.SavingsInput) (domain.SavingsPlan, error) {
 	plan, err := initializeSavingsPlan(input, uuid.Nil, "")
 	if err != nil {
 		return domain.SavingsPlan{}, err
