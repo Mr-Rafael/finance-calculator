@@ -43,6 +43,7 @@ func ToSaveSavingsResponse(savings db.Saving) dto.SavingsSaveResponseParams {
 		YearlyInflationRate:   savings.YearlyInflationRate.String,
 		StartDate:             savings.StartDate.Time.Format(time.RFC3339),
 		MonthlyInterestRate:   savings.MonthlyInterestRate,
+		TotalDeposited:        int(savings.TotalDeposited),
 		TotalInterestEarnings: int(savings.TotalInterestEarnings),
 		RateOfReturn:          savings.RateOfReturn,
 		InflationAdjustedROR:  savings.InflationAdjustedRor,
