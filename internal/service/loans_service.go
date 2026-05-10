@@ -19,6 +19,7 @@ type LoansRepository interface {
 	SaveLoanPaymentPlan(context.Context, domain.LoanPaymentPlan) (db.Loan, error)
 	GetLoanPaymentPlansByUser(context.Context, uuid.UUID) ([]db.GetLoansByUserIDRow, error)
 	GetLoanByID(context.Context, uuid.UUID, uuid.UUID) (domain.LoanPaymentPlan, error)
+	UpdateLoan(context.Context, domain.LoanPaymentPlan) (db.Loan, error)
 	DeleteLoan(context.Context, uuid.UUID, uuid.UUID) error
 }
 
@@ -51,7 +52,7 @@ func (s *LoansService) CalculateLoanPaymentPlan(input domain.LoansInput) (domain
 }
 
 func (s *LoansService) SaveLoanPaymentPlan(ctx context.Context, input domain.SaveLoanInput) (db.Loan, error) {
-	plan, err := initializePaymentPlan(toLoanInput(input), input.UserID, input.LoanName)
+	plan, err := initializePaymentPlan(saveInputToLoanInput(input), input.UserID, input.LoanName)
 	if err != nil {
 		return db.Loan{}, fmt.Errorf("failed to initialize the payment plan struct: %v", err)
 	}
@@ -81,6 +82,25 @@ func (s *LoansService) GetLoan(ctx context.Context, planID uuid.UUID, userID uui
 	if err != nil {
 		return domain.LoanPaymentPlan{}, err
 	}
+	return result, nil
+}
+
+func (s *LoansService) UpdateLoan(ctx context.Context, input domain.UpdateLoanInput) (db.Loan, error) {
+	plan, err := initializePaymentPlan(updateInputToLoanInput(input), input.UserID, input.LoanName)
+	if err != nil {
+		return db.Loan{}, fmt.Errorf("failed to initialize the payment plan struct: %v", err)
+	}
+	plan.ID = input.ID
+
+	plan, err = calculatePaymentPlan(plan)
+	if err != nil {
+		return db.Loan{}, fmt.Errorf("Error calculating payment plan: %v", err)
+	}
+	result, err := s.loansRepo.UpdateLoan(ctx, plan)
+	if err != nil {
+		return db.Loan{}, err
+	}
+
 	return result, nil
 }
 
@@ -157,7 +177,18 @@ func initializePaymentPlan(input domain.LoansInput, userID uuid.UUID, name strin
 	return plan, nil
 }
 
-func toLoanInput(input domain.SaveLoanInput) domain.LoansInput {
+func saveInputToLoanInput(input domain.SaveLoanInput) domain.LoansInput {
+	return domain.LoansInput{
+		StartingPrincipal:  input.StartingPrincipal,
+		YearlyInterestRate: input.YearlyInterestRate,
+		MonthlyPayment:     input.MonthlyPayment,
+		EscrowPayment:      input.EscrowPayment,
+		StartDate:          input.StartDate,
+	}
+
+}
+
+func updateInputToLoanInput(input domain.UpdateLoanInput) domain.LoansInput {
 	return domain.LoansInput{
 		StartingPrincipal:  input.StartingPrincipal,
 		YearlyInterestRate: input.YearlyInterestRate,

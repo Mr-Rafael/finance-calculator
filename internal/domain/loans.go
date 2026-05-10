@@ -25,6 +25,17 @@ type SaveLoanInput struct {
 	StartDate          string
 }
 
+type UpdateLoanInput struct {
+	ID                 uuid.UUID
+	UserID             uuid.UUID
+	LoanName           string
+	StartingPrincipal  int
+	YearlyInterestRate string
+	MonthlyPayment     int
+	EscrowPayment      int
+	StartDate          string
+}
+
 type LoanPaymentPlan struct {
 	ID                  uuid.UUID
 	UserID              uuid.UUID

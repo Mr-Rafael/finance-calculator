@@ -94,6 +94,11 @@ func (r *LoansRepo) UpdateLoan(ctx context.Context, plan domain.LoanPaymentPlan)
 		return db.Loan{}, fmt.Errorf("Failed to update loan on database: %v", err)
 	}
 
+	err = r.queries.DeleteLoanStatesByLoanID(ctx, loanParams.ID)
+	if err != nil {
+		return db.Loan{}, fmt.Errorf("Error deleting old payment plan data: %v", err)
+	}
+
 	for _, status := range plan.Plan {
 		_, err := r.queries.CreateLoanState(ctx, toLoanStateInsertParams(status, queryResult.ID))
 		if err != nil {
