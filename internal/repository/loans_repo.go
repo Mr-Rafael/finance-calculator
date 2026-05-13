@@ -94,7 +94,7 @@ func (r *LoansRepo) GetLoanInitialData(ctx context.Context, loanID uuid.UUID, us
 		YearlyInterestRate: loanQueryResult.YearlyInterestRate,
 		MonthlyPayment:     int(loanQueryResult.MonthlyPayment),
 		EscrowPayment:      int(loanQueryResult.EscrowPayment),
-		StartDate:          loanQueryResult.StartDate.Time.Format(time.RFC3339),
+		StartDate:          loanQueryResult.StartDate.Time.Format("2006-01-02"),
 	}
 	loanData := domain.UpdateLoanData{
 		ID:       loanID,

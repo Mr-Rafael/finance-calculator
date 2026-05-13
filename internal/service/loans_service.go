@@ -101,6 +101,7 @@ func (s *LoansService) UpdateLoan(ctx context.Context, input domain.UpdateLoanIn
 	if err != nil {
 		return db.Loan{}, fmt.Errorf("Error calculating payment plan: %v", err)
 	}
+	plan.ID = input.ID
 	result, err := s.loansRepo.UpdateLoan(ctx, plan)
 	if err != nil {
 		return db.Loan{}, err
