@@ -26,8 +26,9 @@ WHERE user_id = $1;
 SELECT * FROM savings
 WHERE id = $1 AND user_id = $2;
 
--- name: GetSavingsOriginalData :one
-SELECT starting_capital,
+-- name: GetSavingsInitialData :one
+SELECT name,
+    starting_capital,
     yearly_interest_rate,
     interest_rate_type,
     monthly_contribution,
@@ -40,20 +41,20 @@ WHERE id = $1 AND user_id = $2;
 
 -- name: UpdateSavings :one
 UPDATE savings
-SET name = $1,
-    starting_capital = $2,
-    yearly_interest_rate = $3,
-    interest_rate_type = $4,
-    monthly_contribution = $5,
-    duration_years = $6,
-    tax_rate = $7,
-    yearly_inflation_rate = $8,
-    start_date = $9,
-    monthly_interest_rate = $10,
-    total_interest_earnings = $11,
-    total_deposited = $12,
-    rate_of_return = $13,
-    inflation_adjusted_ror = $14
+SET name = $3,
+    starting_capital = $4,
+    yearly_interest_rate = $5,
+    interest_rate_type = $6,
+    monthly_contribution = $7,
+    duration_years = $8,
+    tax_rate = $9,
+    yearly_inflation_rate = $10,
+    start_date = $11,
+    monthly_interest_rate = $12,
+    total_interest_earnings = $13,
+    total_deposited = $14,
+    rate_of_return = $15,
+    inflation_adjusted_ror = $16
 WHERE id = $1 AND user_id = $2
 RETURNING *;
     

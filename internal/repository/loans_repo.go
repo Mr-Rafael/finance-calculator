@@ -84,7 +84,6 @@ func (r *LoansRepo) GetLoanByID(ctx context.Context, loanID uuid.UUID, userID uu
 }
 
 func (r *LoansRepo) GetLoanInitialData(ctx context.Context, loanID uuid.UUID, userID uuid.UUID) (domain.UpdateLoanData, error) {
-
 	loanQueryResult, err := r.queries.GetLoanInitialData(ctx, toInitialLoanDataGetParams(loanID, userID))
 	if err != nil {
 		return domain.UpdateLoanData{}, fmt.Errorf("failed to fetch loan pament plan from database: %v", err)

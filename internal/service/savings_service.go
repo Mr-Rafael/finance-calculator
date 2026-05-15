@@ -19,6 +19,8 @@ type SavingsRepository interface {
 	SaveSavingsPlan(context.Context, domain.SavingsPlan) (db.Saving, error)
 	GetSavingsPlansByUser(context.Context, uuid.UUID) ([]db.GetSavingsByUserIDRow, error)
 	GetSavingsPlanByID(context.Context, uuid.UUID, uuid.UUID) (domain.SavingsPlan, error)
+	GetSavingsInitialData(context.Context, uuid.UUID, uuid.UUID) (domain.UpdateSavingsData, error)
+	UpdateSavings(context.Context, domain.SavingsPlan) (db.Saving, error)
 	DeleteSavingsPlan(context.Context, uuid.UUID, uuid.UUID) error
 }
 
@@ -76,6 +78,27 @@ func (s *SavingsService) GetSavingsPlan(ctx context.Context, planID uuid.UUID, u
 	if err != nil {
 		return domain.SavingsPlan{}, err
 	}
+	return result, nil
+}
+
+func (s *SavingsService) UpdateSavings(ctx context.Context, input domain.UpdateSavingsInput) (db.Saving, error) {
+	originalData, err := s.savingsRepo.GetSavingsInitialData(ctx, input.ID, input.UserID)
+	if err != nil {
+		return db.Saving{}, fmt.Errorf("Savings plan not found.")
+	}
+	patchedData := patchSavingsFields(originalData, input)
+
+	plan, err := initializeSavingsPlan(originalData.SavingsData, input.UserID, patchedData.Name)
+	if err != nil {
+		return db.Saving{}, fmt.Errorf("failed to initialize the savings plan struct: %v", err)
+	}
+	plan = calculateSavings(plan)
+	plan.ID = input.ID
+	result, err := s.savingsRepo.UpdateSavings(ctx, plan)
+	if err != nil {
+		return db.Saving{}, err
+	}
+
 	return result, nil
 }
 
@@ -176,4 +199,32 @@ func toSavingsInput(input domain.SaveSavingsInput) domain.SavingsInput {
 		YearlyInflationRate: input.YearlyInflationRate,
 		StartDate:           input.StartDate,
 	}
+}
+
+func patchSavingsFields(savingsData domain.UpdateSavingsData, patchData domain.UpdateSavingsInput) domain.UpdateSavingsData {
+	if patchData.PlanName != nil {
+		savingsData.Name = *patchData.PlanName
+	}
+	if patchData.StartingCapital != nil {
+		savingsData.SavingsData.StartingCapital = *patchData.StartingCapital
+	}
+	if patchData.YearlyInterestRate != nil {
+		savingsData.SavingsData.YearlyInterestRate = *patchData.YearlyInterestRate
+	}
+	if patchData.InterestRateType != nil {
+		savingsData.SavingsData.InterestRateType = *patchData.InterestRateType
+	}
+	if patchData.MonthlyContribution != nil {
+		savingsData.SavingsData.MonthlyContribution = *patchData.MonthlyContribution
+	}
+	if patchData.TaxRate != nil {
+		savingsData.SavingsData.TaxRate = *patchData.TaxRate
+	}
+	if patchData.YearlyInflationRate != nil {
+		savingsData.SavingsData.YearlyInflationRate = *patchData.YearlyInflationRate
+	}
+	if patchData.StartDate != nil {
+		savingsData.SavingsData.StartDate = *patchData.StartDate
+	}
+	return savingsData
 }

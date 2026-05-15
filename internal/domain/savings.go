@@ -31,6 +31,26 @@ type SaveSavingsInput struct {
 	StartDate           string
 }
 
+type UpdateSavingsInput struct {
+	ID                  uuid.UUID
+	UserID              uuid.UUID
+	PlanName            *string
+	StartingCapital     *int
+	YearlyInterestRate  *string
+	InterestRateType    *string
+	MonthlyContribution *int
+	DurationYears       *int
+	TaxRate             *string
+	YearlyInflationRate *string
+	StartDate           *string
+}
+
+type UpdateSavingsData struct {
+	ID          uuid.UUID
+	Name        string
+	SavingsData SavingsInput
+}
+
 type SavingsPlan struct {
 	ID                    uuid.UUID
 	UserID                uuid.UUID

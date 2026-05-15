@@ -172,8 +172,9 @@ func (q *Queries) GetSavingsByUserID(ctx context.Context, userID pgtype.UUID) ([
 	return items, nil
 }
 
-const getSavingsOriginalData = `-- name: GetSavingsOriginalData :one
-SELECT starting_capital,
+const getSavingsInitialData = `-- name: GetSavingsInitialData :one
+SELECT name,
+    starting_capital,
     yearly_interest_rate,
     interest_rate_type,
     monthly_contribution,
@@ -185,12 +186,13 @@ FROM savings
 WHERE id = $1 AND user_id = $2
 `
 
-type GetSavingsOriginalDataParams struct {
+type GetSavingsInitialDataParams struct {
 	ID     pgtype.UUID
 	UserID pgtype.UUID
 }
 
-type GetSavingsOriginalDataRow struct {
+type GetSavingsInitialDataRow struct {
+	Name                string
 	StartingCapital     int32
 	YearlyInterestRate  string
 	InterestRateType    string
@@ -201,10 +203,11 @@ type GetSavingsOriginalDataRow struct {
 	StartDate           pgtype.Timestamptz
 }
 
-func (q *Queries) GetSavingsOriginalData(ctx context.Context, arg GetSavingsOriginalDataParams) (GetSavingsOriginalDataRow, error) {
-	row := q.db.QueryRow(ctx, getSavingsOriginalData, arg.ID, arg.UserID)
-	var i GetSavingsOriginalDataRow
+func (q *Queries) GetSavingsInitialData(ctx context.Context, arg GetSavingsInitialDataParams) (GetSavingsInitialDataRow, error) {
+	row := q.db.QueryRow(ctx, getSavingsInitialData, arg.ID, arg.UserID)
+	var i GetSavingsInitialDataRow
 	err := row.Scan(
+		&i.Name,
 		&i.StartingCapital,
 		&i.YearlyInterestRate,
 		&i.InterestRateType,
@@ -219,25 +222,27 @@ func (q *Queries) GetSavingsOriginalData(ctx context.Context, arg GetSavingsOrig
 
 const updateSavings = `-- name: UpdateSavings :one
 UPDATE savings
-SET name = $1,
-    starting_capital = $2,
-    yearly_interest_rate = $3,
-    interest_rate_type = $4,
-    monthly_contribution = $5,
-    duration_years = $6,
-    tax_rate = $7,
-    yearly_inflation_rate = $8,
-    start_date = $9,
-    monthly_interest_rate = $10,
-    total_interest_earnings = $11,
-    total_deposited = $12,
-    rate_of_return = $13,
-    inflation_adjusted_ror = $14
+SET name = $3,
+    starting_capital = $4,
+    yearly_interest_rate = $5,
+    interest_rate_type = $6,
+    monthly_contribution = $7,
+    duration_years = $8,
+    tax_rate = $9,
+    yearly_inflation_rate = $10,
+    start_date = $11,
+    monthly_interest_rate = $12,
+    total_interest_earnings = $13,
+    total_deposited = $14,
+    rate_of_return = $15,
+    inflation_adjusted_ror = $16
 WHERE id = $1 AND user_id = $2
 RETURNING id, user_id, name, starting_capital, yearly_interest_rate, interest_rate_type, monthly_contribution, duration_years, tax_rate, yearly_inflation_rate, start_date, monthly_interest_rate, total_interest_earnings, rate_of_return, inflation_adjusted_ror, created_at, total_deposited
 `
 
 type UpdateSavingsParams struct {
+	ID                    pgtype.UUID
+	UserID                pgtype.UUID
 	Name                  string
 	StartingCapital       int32
 	YearlyInterestRate    string
@@ -256,6 +261,8 @@ type UpdateSavingsParams struct {
 
 func (q *Queries) UpdateSavings(ctx context.Context, arg UpdateSavingsParams) (Saving, error) {
 	row := q.db.QueryRow(ctx, updateSavings,
+		arg.ID,
+		arg.UserID,
 		arg.Name,
 		arg.StartingCapital,
 		arg.YearlyInterestRate,

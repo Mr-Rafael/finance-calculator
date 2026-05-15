@@ -14,3 +14,7 @@ RETURNING *;
 SELECT * FROM savings_state
 WHERE savings_id = $1
 ORDER BY date ASC;
+
+-- name: DeleteSavingsStatesBySavingsID :exec
+DELETE FROM savings_state
+WHERE savings_id = $1;

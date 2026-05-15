@@ -36,6 +36,8 @@ type MockSavingsRepo struct {
 	SaveSavingsPlanFunc       func(context.Context, domain.SavingsPlan) (db.Saving, error)
 	GetSavingsPlansByUserFunc func(context.Context, uuid.UUID) ([]db.GetSavingsByUserIDRow, error)
 	GetSavingsPlanByIDFunc    func(context.Context, uuid.UUID, uuid.UUID) (domain.SavingsPlan, error)
+	GetSavingsInitialDataFunc func(context.Context, uuid.UUID, uuid.UUID) (domain.UpdateSavingsData, error)
+	UpdateSavingsFunc         func(context.Context, domain.SavingsPlan) (db.Saving, error)
 	DeleteSavingsPlanFunc     func(context.Context, uuid.UUID, uuid.UUID) error
 }
 
@@ -149,6 +151,19 @@ func (m *MockSavingsRepo) GetSavingsPlanByID(ctx context.Context, planID uuid.UU
 		return m.GetSavingsPlanByIDFunc(ctx, planID, userID)
 	}
 	return domain.SavingsPlan{}, nil
+}
+func (m *MockSavingsRepo) GetSavingsInitialData(ctx context.Context, planID uuid.UUID, userID uuid.UUID) (domain.UpdateSavingsData, error) {
+	if m.GetSavingsInitialDataFunc != nil {
+		return m.GetSavingsInitialDataFunc(ctx, planID, userID)
+	}
+	return domain.UpdateSavingsData{}, nil
+}
+
+func (m *MockSavingsRepo) UpdateSavings(ctx context.Context, planID domain.SavingsPlan) (db.Saving, error) {
+	if m.UpdateSavingsFunc != nil {
+		return m.UpdateSavingsFunc(ctx, planID)
+	}
+	return db.Saving{}, nil
 }
 
 func (m *MockSavingsRepo) DeleteSavingsPlan(ctx context.Context, planID uuid.UUID, userID uuid.UUID) error {
