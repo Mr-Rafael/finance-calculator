@@ -207,6 +207,76 @@ func TestGetSavingsPlansByUser(t *testing.T) {
 	}
 }
 
+func TestUpdateSavings(t *testing.T) {
+	ctx := context.Background()
+	queries := initializeQueries(ctx)
+	repo := NewSavingsRepo(queries)
+
+	test_user_id, err := uuid.Parse("af38df43-3ced-4869-9930-93a0fa0cf1e0")
+	if err != nil {
+		log.Fatalf("failed to parse the test user uuid: %v", err)
+	}
+
+	originalData := dto.SavingsRequestParams{
+		StartingCapital:     0,
+		YearlyInterestRate:  "0.0",
+		InterestRateType:    "APR",
+		MonthlyContribution: 0,
+		DurationYears:       0,
+		TaxRate:             "0.0",
+		YearlyInflationRate: "0.0",
+		StartDate:           "1970-01-01",
+	}
+	params := domain.SavingsPlan{
+		ID:                    uuid.Nil,
+		UserID:                test_user_id,
+		Name:                  "test",
+		OriginalData:          domain.SavingsInput(originalData),
+		StartingCapital:       decimal.Zero,
+		CurrentCapital:        decimal.Zero,
+		MonthlyContribution:   decimal.Zero,
+		DurationMonths:        decimal.Zero,
+		TaxMultiplierM:        decimal.Zero,
+		InflationMultiplierY:  decimal.Zero,
+		Date:                  time.Now(),
+		InterestMultiplierM:   decimal.Zero,
+		TotalInterestEarnings: decimal.Zero,
+		RateOfReturn:          decimal.Zero,
+		InflationAdjustedROR:  decimal.Zero,
+	}
+	result, err := repo.SaveSavingsPlan(ctx, params)
+	if err != nil {
+		log.Fatalf("Error saving savings plan in database: %v", err)
+	}
+
+	updatedName := "updatedSavingsTest"
+	updatedCapital := 100
+	updatedInterest := "1.05"
+
+	params.ID = result.ID.Bytes
+	params.Name = updatedName
+	params.OriginalData.StartingCapital = updatedCapital
+	params.OriginalData.YearlyInterestRate = updatedInterest
+
+	got, err := repo.UpdateSavings(ctx, params)
+
+	want := db.Saving{
+		Name:               updatedName,
+		StartingCapital:    int32(updatedCapital),
+		YearlyInterestRate: updatedInterest,
+	}
+
+	if got.Name != want.Name {
+		log.Fatalf("Savings plan name returned from the database (%v) doesn't match the expected one (%v).", got.Name, want.Name)
+	}
+	if got.StartingCapital != want.StartingCapital {
+		log.Fatalf("Savings plan starting principal returned from the database (%v) doesn't match the expected one (%v).", got.StartingCapital, want.StartingCapital)
+	}
+	if got.YearlyInterestRate != want.YearlyInterestRate {
+		log.Fatalf("Savings plan interest rate returned from the database (%v) doesn't match the expected one (%v).", got.YearlyInterestRate, want.YearlyInterestRate)
+	}
+}
+
 func TestDeleteSavings(t *testing.T) {
 	ctx := context.Background()
 	queries := initializeQueries(ctx)

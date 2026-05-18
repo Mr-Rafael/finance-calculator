@@ -240,7 +240,7 @@ func TestUpdateLoan(t *testing.T) {
 
 	result, err := repo.SaveLoanPaymentPlan(ctx, params)
 
-	updatedName := "updatedTest"
+	updatedName := "updatedLoanTest"
 	updatedPrincipal := 100
 	updatedInterest := "1.05"
 
@@ -264,7 +264,7 @@ func TestUpdateLoan(t *testing.T) {
 		log.Fatalf("Loan starting principal returned from the database (%v) doesn't match the expected one (%v).", got.StartingPrincipal, want.StartingPrincipal)
 	}
 	if got.YearlyInterestRate != want.YearlyInterestRate {
-		log.Fatalf("Loan interest rate returned from the database (%v) doesn't match the expected one (%v).", got.StartingPrincipal, want.StartingPrincipal)
+		log.Fatalf("Loan interest rate returned from the database (%v) doesn't match the expected one (%v).", got.YearlyInterestRate, want.YearlyInterestRate)
 	}
 }
 
