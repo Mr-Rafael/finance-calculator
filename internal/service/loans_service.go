@@ -95,7 +95,7 @@ func (s *LoansService) UpdateLoan(ctx context.Context, input domain.UpdateLoanIn
 
 	plan, err := initializePaymentPlan(patchedData.LoanData, input.UserID, patchedData.Name)
 	if err != nil {
-		return db.Loan{}, fmt.Errorf("failed to initialize the payment plan struct: %v", err)
+		return db.Loan{}, fmt.Errorf("failed to initialize the payment plan struct: %v.", err)
 	}
 	plan, err = calculatePaymentPlan(plan)
 	if err != nil {

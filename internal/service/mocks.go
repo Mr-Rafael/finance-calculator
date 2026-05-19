@@ -112,21 +112,21 @@ func (m *MockLoansRepo) GetLoanByID(ctx context.Context, loanID uuid.UUID, userI
 }
 
 func (m *MockLoansRepo) GetLoanInitialData(ctx context.Context, loanID uuid.UUID, userID uuid.UUID) (domain.UpdateLoanData, error) {
-	if m.GetLoanByIDFunc != nil {
+	if m.GetLoanInitialDataFunc != nil {
 		return m.GetLoanInitialDataFunc(ctx, loanID, userID)
 	}
 	return domain.UpdateLoanData{}, nil
 }
 
 func (m *MockLoansRepo) UpdateLoan(ctx context.Context, plan domain.LoanPaymentPlan) (db.Loan, error) {
-	if m.SaveLoanPaymentPlanFunc != nil {
+	if m.UpdateLoanFunc != nil {
 		return m.UpdateLoanFunc(ctx, plan)
 	}
 	return db.Loan{}, nil
 }
 
 func (m *MockLoansRepo) DeleteLoan(ctx context.Context, loanID uuid.UUID, userID uuid.UUID) error {
-	if m.GetLoanByIDFunc != nil {
+	if m.DeleteLoanFunc != nil {
 		return m.DeleteLoanFunc(ctx, loanID, userID)
 	}
 	return nil
