@@ -44,20 +44,18 @@ func TestGetUserByEmail(t *testing.T) {
 	ctx := context.Background()
 	queries := initializeQueries(ctx)
 	repo := NewUsersRepo(queries)
-	testEmail := "test@mail.com"
-	testID := "af38df43-3ced-4869-9930-93a0fa0cf1e0"
+	testUser, err := CreateTestUserIfNotExists()
+	if err != nil {
+		log.Fatalf("Failed to create a test user.")
+	}
 
-	got, err := repo.GetUserByEmail(ctx, testEmail)
+	got, err := repo.GetUserByEmail(ctx, testUser.Email)
 	if err != nil {
 		log.Fatalf("Failed to get user from database: %v", err)
 	}
-	testUUID, err := uuid.Parse(testID)
-	if err != nil {
-		log.Fatalf("Failed to parse test user's UUID: %v", testUUID)
-	}
 	want := db.User{
 		ID: pgtype.UUID{
-			Bytes: testUUID,
+			Bytes: testUser.ID.Bytes,
 			Valid: true,
 		},
 	}
@@ -65,6 +63,7 @@ func TestGetUserByEmail(t *testing.T) {
 	if got.ID.Bytes != want.ID.Bytes {
 		log.Fatalf("The expected UUID (%v) did not match the fetched one (%v)", want.ID.Bytes, got.ID.Bytes)
 	}
+	DeleteTestUser()
 }
 
 func TestGetUserByID(t *testing.T) {

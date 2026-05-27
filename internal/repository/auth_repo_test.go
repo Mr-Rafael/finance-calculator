@@ -101,3 +101,33 @@ func TestRevokeToken(t *testing.T) {
 
 	}
 }
+
+func CreateTestTokenIfNotExists(userID string) (db.RefreshToken, error) {
+	ctx := context.Background()
+	queries := initializeQueries(ctx)
+	var userUUID [16]byte
+	copy(userUUID[:], userID)
+	testHash := "TESTHASH"
+
+	insertParams := db.CreateRefreshTokenParams{
+		UserID: pgtype.UUID{
+			Bytes: userUUID,
+			Valid: true,
+		},
+		TokenHash: testHash,
+		ExpiresAt: pgtype.Timestamptz{
+			Time:  time.Now().Add(5 * time.Minute),
+			Valid: true,
+		},
+		Revoked: pgtype.Bool{
+			Bool:  false,
+			Valid: true,
+		},
+	}
+
+	token, err := queries.GetTokenByHash(ctx, testHash)
+	if err != nil {
+		return queries.CreateRefreshToken(ctx, insertParams)
+	}
+	return token, nil
+}
