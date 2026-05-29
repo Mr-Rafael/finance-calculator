@@ -19,7 +19,7 @@ func TestSaveLoanPaymentPlan(t *testing.T) {
 	queries := initializeQueries(ctx)
 	repo := NewLoansRepo(queries)
 
-	test_user_id, err := uuid.Parse("af38df43-3ced-4869-9930-93a0fa0cf1e0")
+	testUser, err := CreateTestUserIfNotExists()
 	if err != nil {
 		log.Fatalf("failed to parse the test user uuid: %v", err)
 	}
@@ -33,7 +33,7 @@ func TestSaveLoanPaymentPlan(t *testing.T) {
 	}
 	params := domain.LoanPaymentPlan{
 		ID:                  uuid.Nil,
-		UserID:              test_user_id,
+		UserID:              testUser.ID.Bytes,
 		Name:                "test",
 		OriginalData:        domain.LoansInput(originalData),
 		StartingPrincipal:   decimal.Zero,
@@ -64,7 +64,7 @@ func TestSaveLoanPaymentPlan(t *testing.T) {
 
 	want := db.Loan{
 		UserID: pgtype.UUID{
-			Bytes: test_user_id,
+			Bytes: testUser.ID.Bytes,
 			Valid: true,
 		},
 	}
@@ -79,7 +79,7 @@ func TestGetLoanPaymentPlan(t *testing.T) {
 	queries := initializeQueries(ctx)
 	repo := NewLoansRepo(queries)
 
-	test_user_id, err := uuid.Parse("af38df43-3ced-4869-9930-93a0fa0cf1e0")
+	testUser, err := CreateTestUserIfNotExists()
 	if err != nil {
 		log.Fatalf("failed to parse the test user uuid: %v", err)
 	}
@@ -101,7 +101,7 @@ func TestGetLoanPaymentPlan(t *testing.T) {
 	}
 	params := domain.LoanPaymentPlan{
 		ID:                  uuid.Nil,
-		UserID:              test_user_id,
+		UserID:              testUser.ID.Bytes,
 		Name:                "test",
 		OriginalData:        domain.LoansInput(originalData),
 		StartingPrincipal:   decimal.Zero,
@@ -129,7 +129,7 @@ func TestGetLoanPaymentPlan(t *testing.T) {
 
 	want := db.Loan{
 		UserID: pgtype.UUID{
-			Bytes: test_user_id,
+			Bytes: testUser.ID.Bytes,
 			Valid: true,
 		},
 	}
@@ -143,15 +143,12 @@ func TestGetLoansByUser(t *testing.T) {
 	ctx := context.Background()
 	queries := initializeQueries(ctx)
 	repo := NewLoansRepo(queries)
-	test_user_id, err := uuid.Parse("af38df43-3ced-4869-9930-93a0fa0cf1e0")
+
+	testUser, err := CreateTestUserIfNotExists()
 	if err != nil {
 		log.Fatalf("failed to parse the test user uuid: %v", err)
 	}
-	userUUID := pgtype.UUID{
-		Bytes: test_user_id,
-		Valid: true,
-	}
-	loansBefore, err := repo.queries.GetLoansByUserID(ctx, userUUID)
+	loansBefore, err := repo.queries.GetLoansByUserID(ctx, testUser.ID)
 	if err != nil {
 		log.Fatalf("Error fetching loans before adding new one.")
 	}
@@ -166,7 +163,7 @@ func TestGetLoansByUser(t *testing.T) {
 	}
 	params := domain.LoanPaymentPlan{
 		ID:                  uuid.Nil,
-		UserID:              test_user_id,
+		UserID:              testUser.ID.Bytes,
 		Name:                "test",
 		OriginalData:        domain.LoansInput(originalData),
 		StartingPrincipal:   decimal.Zero,
@@ -184,7 +181,7 @@ func TestGetLoansByUser(t *testing.T) {
 	if err != nil {
 		log.Fatalf("Error saving loan in database: %v", err)
 	}
-	loansAfter, err := repo.queries.GetLoansByUserID(ctx, userUUID)
+	loansAfter, err := repo.queries.GetLoansByUserID(ctx, testUser.ID)
 	if err != nil {
 		log.Fatalf("Error fetching loans after adding new one.")
 	}
@@ -200,7 +197,7 @@ func TestUpdateLoan(t *testing.T) {
 	queries := initializeQueries(ctx)
 	repo := NewLoansRepo(queries)
 
-	test_user_id, err := uuid.Parse("af38df43-3ced-4869-9930-93a0fa0cf1e0")
+	testUser, err := CreateTestUserIfNotExists()
 	if err != nil {
 		log.Fatalf("failed to parse the test user uuid: %v", err)
 	}
@@ -214,7 +211,7 @@ func TestUpdateLoan(t *testing.T) {
 	}
 	params := domain.LoanPaymentPlan{
 		ID:                  uuid.Nil,
-		UserID:              test_user_id,
+		UserID:              testUser.ID.Bytes,
 		Name:                "test",
 		OriginalData:        domain.LoansInput(originalData),
 		StartingPrincipal:   decimal.Zero,
@@ -272,7 +269,8 @@ func TestDeleteLoan(t *testing.T) {
 	ctx := context.Background()
 	queries := initializeQueries(ctx)
 	repo := NewLoansRepo(queries)
-	test_user_id, err := uuid.Parse("af38df43-3ced-4869-9930-93a0fa0cf1e0")
+
+	testUser, err := CreateTestUserIfNotExists()
 	if err != nil {
 		log.Fatalf("failed to parse the test user uuid: %v", err)
 	}
@@ -286,7 +284,7 @@ func TestDeleteLoan(t *testing.T) {
 	}
 	params := domain.LoanPaymentPlan{
 		ID:                  uuid.Nil,
-		UserID:              test_user_id,
+		UserID:              testUser.ID.Bytes,
 		Name:                "test",
 		OriginalData:        domain.LoansInput(originalData),
 		StartingPrincipal:   decimal.Zero,

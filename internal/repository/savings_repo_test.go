@@ -19,9 +19,9 @@ func TestSaveSavingsPlan(t *testing.T) {
 	queries := initializeQueries(ctx)
 	repo := NewSavingsRepo(queries)
 
-	test_user_id, err := uuid.Parse("af38df43-3ced-4869-9930-93a0fa0cf1e0")
+	testUser, err := CreateTestUserIfNotExists()
 	if err != nil {
-		log.Fatalf("failed to parse the test user uuid: %v", err)
+		log.Fatalf("Failed to create test user: %v", err)
 	}
 
 	originalData := dto.SavingsRequestParams{
@@ -36,7 +36,7 @@ func TestSaveSavingsPlan(t *testing.T) {
 	}
 	params := domain.SavingsPlan{
 		ID:                    uuid.Nil,
-		UserID:                test_user_id,
+		UserID:                testUser.ID.Bytes,
 		Name:                  "test",
 		OriginalData:          domain.SavingsInput(originalData),
 		StartingCapital:       decimal.Zero,
@@ -68,7 +68,7 @@ func TestSaveSavingsPlan(t *testing.T) {
 
 	want := db.Saving{
 		UserID: pgtype.UUID{
-			Bytes: test_user_id,
+			Bytes: testUser.ID.Bytes,
 			Valid: true,
 		},
 	}
@@ -83,9 +83,9 @@ func TestGetSavingsPlan(t *testing.T) {
 	queries := initializeQueries(ctx)
 	repo := NewSavingsRepo(queries)
 
-	test_user_id, err := uuid.Parse("af38df43-3ced-4869-9930-93a0fa0cf1e0")
+	testUser, err := CreateTestUserIfNotExists()
 	if err != nil {
-		log.Fatalf("failed to parse the test user uuid: %v", err)
+		log.Fatalf("Failed to create test user: %v", err)
 	}
 
 	originalData := dto.SavingsRequestParams{
@@ -100,7 +100,7 @@ func TestGetSavingsPlan(t *testing.T) {
 	}
 	params := domain.SavingsPlan{
 		ID:                    uuid.Nil,
-		UserID:                test_user_id,
+		UserID:                testUser.ID.Bytes,
 		Name:                  "test",
 		OriginalData:          domain.SavingsInput(originalData),
 		StartingCapital:       decimal.Zero,
@@ -137,7 +137,7 @@ func TestGetSavingsPlan(t *testing.T) {
 
 	want := db.Saving{
 		UserID: pgtype.UUID{
-			Bytes: test_user_id,
+			Bytes: testUser.ID.Bytes,
 			Valid: true,
 		},
 	}
@@ -151,12 +151,14 @@ func TestGetSavingsPlansByUser(t *testing.T) {
 	ctx := context.Background()
 	queries := initializeQueries(ctx)
 	repo := NewSavingsRepo(queries)
-	test_user_id, err := uuid.Parse("af38df43-3ced-4869-9930-93a0fa0cf1e0")
+
+	testUser, err := CreateTestUserIfNotExists()
 	if err != nil {
-		log.Fatalf("failed to parse the test user uuid: %v", err)
+		log.Fatalf("Failed to create test user: %v", err)
 	}
+
 	userUUID := pgtype.UUID{
-		Bytes: test_user_id,
+		Bytes: testUser.ID.Bytes,
 		Valid: true,
 	}
 	loansBefore, err := repo.queries.GetSavingsByUserID(ctx, userUUID)
@@ -177,7 +179,7 @@ func TestGetSavingsPlansByUser(t *testing.T) {
 	}
 	params := domain.SavingsPlan{
 		ID:                    uuid.Nil,
-		UserID:                test_user_id,
+		UserID:                testUser.ID.Bytes,
 		Name:                  "test",
 		OriginalData:          domain.SavingsInput(originalData),
 		StartingCapital:       decimal.Zero,
@@ -212,9 +214,9 @@ func TestUpdateSavings(t *testing.T) {
 	queries := initializeQueries(ctx)
 	repo := NewSavingsRepo(queries)
 
-	test_user_id, err := uuid.Parse("af38df43-3ced-4869-9930-93a0fa0cf1e0")
+	testUser, err := CreateTestUserIfNotExists()
 	if err != nil {
-		log.Fatalf("failed to parse the test user uuid: %v", err)
+		log.Fatalf("Failed to create test user: %v", err)
 	}
 
 	originalData := dto.SavingsRequestParams{
@@ -229,7 +231,7 @@ func TestUpdateSavings(t *testing.T) {
 	}
 	params := domain.SavingsPlan{
 		ID:                    uuid.Nil,
-		UserID:                test_user_id,
+		UserID:                testUser.ID.Bytes,
 		Name:                  "test",
 		OriginalData:          domain.SavingsInput(originalData),
 		StartingCapital:       decimal.Zero,
@@ -281,9 +283,10 @@ func TestDeleteSavings(t *testing.T) {
 	ctx := context.Background()
 	queries := initializeQueries(ctx)
 	repo := NewSavingsRepo(queries)
-	test_user_id, err := uuid.Parse("af38df43-3ced-4869-9930-93a0fa0cf1e0")
+
+	testUser, err := CreateTestUserIfNotExists()
 	if err != nil {
-		log.Fatalf("failed to parse the test user uuid: %v", err)
+		log.Fatalf("Failed to create test user: %v", err)
 	}
 
 	originalData := dto.SavingsRequestParams{
@@ -298,7 +301,7 @@ func TestDeleteSavings(t *testing.T) {
 	}
 	params := domain.SavingsPlan{
 		ID:                    uuid.Nil,
-		UserID:                test_user_id,
+		UserID:                testUser.ID.Bytes,
 		Name:                  "test",
 		OriginalData:          domain.SavingsInput(originalData),
 		StartingCapital:       decimal.Zero,

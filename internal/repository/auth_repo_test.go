@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Mr-Rafael/finance-calculator/internal/db"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -38,27 +37,33 @@ func TestGetTokenByHash(t *testing.T) {
 	queries := initializeQueries(ctx)
 	repo := NewAuthRepo(queries)
 
-	tokenHash := "1d0c6a19d3602a7608a1a2218671c1d444ca415fc685cb9182c2584e9ce395b6"
-
-	got, err := repo.GetTokenByHash(ctx, tokenHash)
+	testUser, err := CreateTestUserIfNotExists()
+	if err != nil {
+		log.Fatalf("Failed to create a test user for unit test: %v", err)
+		return
+	}
+	tokenData, err := CreateTestTokenIfNotExists(testUser.ID)
+	if err != nil {
+		log.Fatalf("Failed to create test refresh token: %v", err)
+		DeleteTestUser()
+		return
+	}
+	got, err := repo.GetTokenByHash(ctx, tokenData.TokenHash)
 	if err != nil {
 		log.Fatalf("Error getting token from database: %v", err)
 	}
-
-	testTokenID, err := uuid.Parse("aabfe0ac-3e13-4744-8a31-4073b69caa68")
-	if err != nil {
-		log.Fatalf("failed to parse the test token uuid: %v", err)
-	}
 	want := db.RefreshToken{
 		ID: pgtype.UUID{
-			Bytes: testTokenID,
+			Bytes: tokenData.ID.Bytes,
 			Valid: true,
 		},
 	}
 
 	if got.ID.Bytes != want.ID.Bytes {
-		log.Fatalf("Read (%v) and expected (%v) user IDs did not match.", got.UserID.Bytes, want.UserID.Bytes)
+		log.Fatalf("The obtained (%v) and expected (%v) user IDs did not match.", got.UserID.Bytes, want.UserID.Bytes)
 	}
+
+	DeleteTestUser()
 }
 
 func TestRevokeToken(t *testing.T) {
@@ -66,28 +71,28 @@ func TestRevokeToken(t *testing.T) {
 	queries := initializeQueries(ctx)
 	repo := NewAuthRepo(queries)
 
-	test_user_id, err := uuid.Parse("af38df43-3ced-4869-9930-93a0fa0cf1e0")
+	testUser, err := CreateTestUserIfNotExists()
 	if err != nil {
-		log.Fatalf("failed to parse the test user uuid: %v", err)
+		log.Fatalf("Failed to create a test user for the unit test: %v", err)
+		return
 	}
 
-	user := pgtype.UUID{
-		Bytes: test_user_id,
-		Valid: true,
-	}
-	newToken, err := repo.CreateRefreshToken(ctx, user, "test_token", time.Now())
+	newToken, err := repo.CreateRefreshToken(ctx, testUser.ID, "test_token", time.Now())
 	if err != nil {
 		log.Fatalf("Error saving the refresh token in database: %v", err)
+		return
 	}
 
 	err = repo.RevokeTokenByUserID(ctx, newToken.UserID)
 	if err != nil {
 		log.Fatalf("Error revoking refresh token: %v", err)
+		return
 	}
 
 	got, err := repo.GetTokenByHash(ctx, newToken.TokenHash)
 	if err != nil {
 		log.Fatalf("Error getting revoked token: %v", err)
+		return
 	}
 
 	want := db.RefreshToken{
@@ -97,23 +102,20 @@ func TestRevokeToken(t *testing.T) {
 		},
 	}
 
-	if got.ID.Valid != want.ID.Valid {
-
+	if got.Revoked.Bool != want.Revoked.Bool {
+		log.Fatalf("Expected the token to be invalid (%v), but it was valid (%v).", want.Revoked.Bool, got.Revoked.Bool)
 	}
+
+	DeleteTestUser()
 }
 
-func CreateTestTokenIfNotExists(userID string) (db.RefreshToken, error) {
+func CreateTestTokenIfNotExists(userID pgtype.UUID) (db.RefreshToken, error) {
 	ctx := context.Background()
 	queries := initializeQueries(ctx)
-	var userUUID [16]byte
-	copy(userUUID[:], userID)
 	testHash := "TESTHASH"
 
 	insertParams := db.CreateRefreshTokenParams{
-		UserID: pgtype.UUID{
-			Bytes: userUUID,
-			Valid: true,
-		},
+		UserID:    userID,
 		TokenHash: testHash,
 		ExpiresAt: pgtype.Timestamptz{
 			Time:  time.Now().Add(5 * time.Minute),
