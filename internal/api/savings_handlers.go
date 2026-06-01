@@ -39,6 +39,7 @@ func (handler *SavingsHandler) HandleCalculateSavings(writer http.ResponseWriter
 		default:
 			respondWithError(writer, err.Error(), err.Error(), http.StatusInternalServerError)
 		}
+		return
 	}
 	respondWithJSON(writer, mapper.ToSavingsResponse(result), http.StatusOK)
 }
@@ -72,6 +73,7 @@ func (handler *SavingsHandler) HandleSaveSavings(writer http.ResponseWriter, req
 		default:
 			respondWithError(writer, err.Error(), err.Error(), http.StatusInternalServerError)
 		}
+		return
 	}
 
 	respondWithJSON(writer, mapper.ToSaveSavingsResponse(result), http.StatusCreated)
@@ -158,6 +160,7 @@ func (handler *SavingsHandler) HandleUpdateSavings(writer http.ResponseWriter, r
 		default:
 			respondWithError(writer, err.Error(), err.Error(), http.StatusInternalServerError)
 		}
+		return
 	}
 
 	respondWithJSON(writer, mapper.ToSaveSavingsResponse(result), http.StatusOK)

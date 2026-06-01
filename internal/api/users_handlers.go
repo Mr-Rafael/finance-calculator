@@ -34,11 +34,10 @@ func (handler *UsersHandler) CreateUser(writer http.ResponseWriter, request *htt
 		switch {
 		case errors.As(err, &inputErr):
 			respondWithError(writer, err.Error(), err.Error(), http.StatusBadRequest)
-			return
 		default:
 			respondWithError(writer, err.Error(), err.Error(), http.StatusInternalServerError)
-			return
 		}
+		return
 	}
 	respondWithJSON(writer, result, http.StatusCreated)
 }

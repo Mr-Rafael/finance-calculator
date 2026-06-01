@@ -39,6 +39,7 @@ func (handler *LoanHandler) HandleCalculateLoan(writer http.ResponseWriter, requ
 		default:
 			respondWithError(writer, err.Error(), err.Error(), http.StatusInternalServerError)
 		}
+		return
 	}
 	respondWithJSON(writer, mapper.ToLoanResponse(result), http.StatusOK)
 }
@@ -72,6 +73,7 @@ func (handler *LoanHandler) HandleSaveLoan(writer http.ResponseWriter, request *
 		default:
 			respondWithError(writer, err.Error(), err.Error(), http.StatusInternalServerError)
 		}
+		return
 	}
 
 	respondWithJSON(writer, mapper.ToSaveLoanResponse(result), http.StatusCreated)
