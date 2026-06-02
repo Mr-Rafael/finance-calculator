@@ -242,7 +242,6 @@ METHOD /endpoint
 | <kbd>PATCH /app/loans/{id}</kbd>     | Update and recalculate a Loan Payment Plan.
 | <kbd>DELETE /app/savings/{id}</kbd>     | Delete a Savings Plan.
 | <kbd>DELETE /app/loans/{id}</kbd>     | Delete a Loan Payment Plan.
-
 ## `GET /api/healthz`
 
 Check if the server is running.
@@ -263,7 +262,6 @@ GET /api/healthz
 OK
 ```
 ---
-
 ## `POST /app/users/create`
 
 Create a new user.
@@ -345,7 +343,6 @@ POST /app/users/create
   "error": "internal server error"
 }
 ```
-
 ## `POST app/login`
 
 Login to receive an access and refresh token. Access tokens are necessary to access some endpoints.
@@ -471,7 +468,6 @@ No body. All required information is on the cookie.
     "error": "missing refresh token"
 }
 ```
-
 ## `POST /app/savings/calculate`
 
 Calculate a Savings Plan without saving it.
@@ -513,7 +509,7 @@ POST /app/savings/calculate
 | startingCapital | integer | Yes | How much money was deposited at the start of the term, in cents. For example, startingCapital = 100 would mean $1. |
 | yearlyInterestRate | string | Yes | The yearly interest rate for the savings plan. Send as a percent. For example, "6.25" would be a 6.25% interest rate. |
 | startDate | integer | Yes | The start date of the savings plan. |
-| durationYears | integer | Yes | The term you want to calculate in years. 1 means "calculate the savings plan for 1 year". |
+| durationYears | integer | Yes | The term you want to calculate in years. 1 means "calculate the savings plan for 1 year".  ISO 8601|
 | interestRateType | string | No | Send "APR" or "APY", depending on the type of interest rate. If empty, it defaults to APY. |
 | monthlyContribution | integer | No | The monthly deposits that will be made (if any). Defaults to 0 if not in the request. The amount is in cents (e.g. 15000 means $150) |
 | taxRate | string | No | The tax rate paid on returns. Send as a percent. For example, "5" means a 5% tax rate. Defaults to 0% if not in the request. |
@@ -584,7 +580,7 @@ POST /app/savings/calculate
 
 ```json
 {
-  "error": "(error message depends on the invalid or missing field)"
+  "error": "error message depending on the invalid or missing field"
 }
 ```
 
@@ -592,7 +588,369 @@ POST /app/savings/calculate
 
 ```json
 {
-    "error": "(error message depends on authentication error)"
+    "error": "error message dependimg on authentication error"
+}
+```
+
+### `500 Internal Server Error`
+
+```json
+{
+  "error": "internal server error"
+}
+```
+## `POST /app/loans/calculate`
+
+Calculate a Loan Payment Plan without saving it.
+
+---
+
+### URL
+
+```http
+POST /app/loans/calculate
+```
+
+### Headers
+
+| Header | Required | Description |
+|---|---|---|
+| Authorization | Yes | Bearer token `Bearer [access token here]` |
+| Content-Type | Yes | Usually `application/json` |
+
+### Request Body
+
+```json
+{
+	"startingPrincipal": 10000000,
+	"yearlyInterestRate": "5",
+	"monthlyPayment": 1500000,
+	"escrowPayment": 10000,
+	"startDate": "1970-01-01"
+}
+```
+
+### Request Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| startingPrincipal | integer | Yes | Starting principal of the loan in cents. |
+| yearlyInterestRate | string | Yes | Yearly interest rate of the loan (APR). Send as a percent ("5" would mean 5% yearly interest rate) |
+| monthlyPayment | integer | Yes | Monthly payments made to the loan, in cents. |
+| escrowPayment | integer | Yes | Additional, fixed payments that you make every month. For example, insurance, that are part of the monthly payments. |
+| startDate | string | Yes | Start date of the loan. |
+
+---
+
+### Response
+
+### Success Response
+
+**Status Code:** `200 OK`
+
+```json
+{
+    "durationMonths": 7,
+    "totalExpenditure": 234054,
+    "totalPaid": 10234054,
+    "costOfCreditPercent": "1.02",
+    "plan": [
+        {
+            "date": "1970-02-01T00:00:00Z",
+            "payment": 1500000,
+            "interest": 41667,
+            "otherPayments": 10000,
+            "paydown": 1448333,
+            "principal": 8551667
+        },
+        {
+            "date": "1970-03-01T00:00:00Z",
+            "payment": 1500000,
+            "interest": 35632,
+            "otherPayments": 10000,
+            "paydown": 1454368,
+            "principal": 7097299
+        }
+    ]
+}
+```
+
+
+
+### Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| durationMonths | integer | Calculated duration of the loan in months. |
+| totalExpenditure | integer | Total money paid to non-principal payments at the end of the loan. This includes interest and escrow payments. |
+| totalPaid | integer | Total money paid at the end of the loan, including interest, principal and escrow payments. |
+| costOfCreditPercent | string | How much more was paid than what was loaned. Calculated as the total paid over the loan's starting principal. For example "5" means a 5% cost of credit. |
+| plan | array of plan statuses | An array of monthly statuses of the Payment plan. |
+
+**Plan Status Fields**
+
+| Field | Type | Description |
+|---|---|---|
+| date | string | The date of this monthly status. ISO 8601. |
+| payment | integer | The payment made this month. |
+| interest | integer | The interest accrued this month. |
+| otherPayments | string | The amount that went into other payments this month (escrow payments like insurance). |
+| paydown | array of plan statuses | The amount that was paid to principal this month. |
+| principal | array of plan statuses | The loan principal at the end of this month. |
+
+---
+
+### Error Responses
+
+### `400 Bad Request`
+
+```json
+{
+  "error": "error message depending on the invalid or missing field"
+}
+```
+
+### `401 Unauthorized`
+
+```json
+{
+    "error": "error message depending on authentication error"
+}
+```
+
+### `500 Internal Server Error`
+
+```json
+{
+  "error": "internal server error"
+}
+```
+## `POST /app/savings/save`
+
+Calculate and then save a Savings Plan to database.
+
+---
+
+### URL
+
+```http
+POST /app/savings/save
+```
+
+### Headers
+
+| Header | Required | Description |
+|---|---|---|
+| Authorization | Yes | Bearer token `Bearer [access token here]` |
+| Content-Type | Yes | Usually `application/json` |
+
+### Request Body
+
+```json
+{
+    "name": "Test",
+	"startingCapital": 700000,
+	"yearlyInterestRate": "4.75",
+    "interestRateType": "APR",
+	"monthlyContribution": 15000,
+	"durationYears": 1,
+    "taxRate": "5",
+    "yearlyInflationRate": "6",
+	"startDate": "1970-01-01"
+}
+```
+
+### Request Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| Name | string | Yes | The name of the savings plan. Doesn't need to be unique. |
+| startingCapital | integer | Yes | How much money was deposited at the start of the term, in cents. For example, startingCapital = 100 would mean $1. |
+| yearlyInterestRate | string | Yes | The yearly interest rate for the savings plan. Send as a percent. For example, "6.25" would be a 6.25% interest rate. |
+| startDate | integer | Yes | The start date of the savings plan. |
+| durationYears | integer | Yes | The term you want to calculate in years. 1 means "calculate the savings plan for 1 year".  ISO 8601|
+| interestRateType | string | No | Send "APR" or "APY", depending on the type of interest rate. If empty, it defaults to APY. |
+| monthlyContribution | integer | No | The monthly deposits that will be made (if any). Defaults to 0 if not in the request. The amount is in cents (e.g. 15000 means $150) |
+| taxRate | string | No | The tax rate paid on returns. Send as a percent. For example, "5" means a 5% tax rate. Defaults to 0% if not in the request. |
+| yearlyInflationRate | string | No | The yearly inflation rate, used for rate of return calculations. Send as a percent. For example, "6" means a 6% yearly inflation rate. Defaults to 0% if not in the request..  |
+
+---
+
+### Response
+
+### Success Response
+
+**Status Code:** `201 Created`
+
+```json
+{
+    "id": "bd790a03-aabe-4a9d-861e-148fcd5adb46",
+    "name": "test",
+    "startingCapital": 700000,
+    "yearlyInterestRate": "4.75",
+    "interestRateType": "APY",
+    "monthlyContribution": 15000,
+    "durationYears": 1,
+    "taxRate": "0",
+    "yearlyInflationRate": "0",
+    "startDate": "2026-01-31T18:00:00-06:00",
+    "monthlyInterestRate": "0.3874684992129274856453709025059820372",
+    "totalDeposited": 880000,
+    "totalEarnings": 37136,
+    "rateOfReturn": "4.22",
+    "inflationAdjustedROR": "4.22"
+}
+```
+
+### Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| id | string | The ID of the created Savings Plan. UUID v4. |
+| name | string | The name of the created loan. |
+| startingCapital | int | Confirmation of the starting capital saved in the database |
+| yearlyInterestRate | string | Confirmation of the yearly interest rate saved in the database |
+| interestRateType | string | Confirmation of the interest rate type saved in the database. |
+| monthlyContribution | integer | Confirmation of the monthly contribution saved in the database. |
+| durationYears | integer | Confirmation of the duration saved in the database. |
+| taxRate | string | Confirmation of the tax rate saved in the database. |
+| yearlyInflationRate | string | Confirmation of the yearly inflation rate saved in the database. |
+| startDate | string | Confirmation of the start date saved in the database. ISO 8601 timestamp. |
+| monthlyInterestRate | string | The monthly interest rate calculated from the yearly one, used for calculations. |
+| totalDeposited | integer | The total money deposited on the account in cents. |
+| totalEarnings | string | The total money earned in interest after the term. |
+| rateOfReturn | string | The total savings in the account divided by what was actually deposited. Represents a percent (4.22 means 4.22% rate of return) |
+| inflationAdjustedROR | string | The rate of retrun divided by the inflation at the end of the term. Represents a percent (4.22 means 4.22% rate of return). |
+
+---
+
+### Error Responses
+
+### `400 Bad Request`
+
+```json
+{
+  "error": "error message depending on the invalid or missing field"
+}
+```
+
+### `401 Unauthorized`
+
+```json
+{
+    "error": "error message dependimg on authentication error"
+}
+```
+
+### `500 Internal Server Error`
+
+```json
+{
+  "error": "internal server error"
+}
+```
+## `POST /app/loans/save`
+
+Calculate and then save a Loan Payment Plan in database.
+
+---
+
+### URL
+
+```http
+POST /app/loans/save
+```
+
+### Headers
+
+| Header | Required | Description |
+|---|---|---|
+| Authorization | Yes | Bearer token `Bearer [access token here]` |
+| Content-Type | Yes | Usually `application/json` |
+
+### Request Body
+
+```json
+{
+    "name": "Test",
+	"startingPrincipal": 10000000,
+	"yearlyInterestRate": "5",
+	"monthlyPayment": 1500000,
+	"escrowPayment": 10000,
+	"startDate": "1970-01-01"
+}
+```
+
+### Request Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| name | string | Yes | Name for the new Loan Payment Plan. |
+| startingPrincipal | integer | Yes | Starting principal of the loan in cents. |
+| yearlyInterestRate | string | Yes | Yearly interest rate of the loan (APR). Send as a percent ("5" would mean 5% yearly interest rate) |
+| monthlyPayment | integer | Yes | Monthly payments made to the loan, in cents. |
+| escrowPayment | integer | Yes | Additional, fixed payments that you make every month. For example, insurance, that are part of the monthly payments. |
+| startDate | string | Yes | Start date of the loan. |
+
+---
+
+### Response
+
+### Success Response
+
+**Status Code:** `201 Created`
+
+```json
+{
+    "id": "7632d773-4846-4b47-b3b9-3f3f06330072",
+    "name": "Test",
+    "startingPrincipal": 10000000,
+    "yearlyInterestRate": "5",
+    "monthlyPayment": 900076,
+    "escrowPayment": 10000,
+    "startDate": "1969-12-31T18:00:00-06:00",
+    "durationMonths": 12,
+    "totalExpenditure": 383416,
+    "totalPaid": 10383416,
+    "costOfCreditPercent": "3.83416398261762"
+}
+```
+
+
+
+### Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| id | string | The ID of the created Loan Payment Plan. UUID v4. |
+| name | string | The name of the created Loan Payment Plan. |
+| startingPrincipal | integer | Confirmation of the starting principal saved on database. |
+| yearlyInterestRate | integer | Confirmation of the yearly interest rate saved on database. |
+| monthlyPayment | integer | Confirmation of the monthly payment saved on database. |
+| escrowPayment | integer | Confirmation of the escrow payment saved on database. |
+| startDate | integer | Confirmation of the start date saved on database. ISO 8601 timestamp. |
+| durationMonths | integer | Calculated duration of the loan in months. |
+| totalExpenditure | integer | The total non-principal expenditures at the end of the loan. Includes interest and escrow payments. |
+| totalPaid | integer | The toal money paid on the loan. Includes interest, escrow and principal payments. |
+| costOfCreditPercent | string | Calculated cost of credit as a percent. For example, "3.33" means a 3.33% cost of credit. |
+
+---
+
+### Error Responses
+
+### `400 Bad Request`
+
+```json
+{
+  "error": "error message depending on the invalid or missing field"
+}
+```
+
+### `401 Unauthorized`
+
+```json
+{
+    "error": "error message depending on authentication error"
 }
 ```
 
@@ -611,7 +969,7 @@ POST /app/savings/calculate
       <a href="#">
         <img src="https://avatars.githubusercontent.com/u/35672719?s=48&v=4" width="100px;" alt="Rafael Mazariegos picture"/><br>
         <sub>
-          <b>Rafael Mazariegos</b>
+          <b>Rafael Mazariegos (Mr-Rafael)</b>
         </sub>
       </a>
     </td>

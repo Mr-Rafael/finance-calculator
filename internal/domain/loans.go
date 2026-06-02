@@ -113,5 +113,7 @@ func (p *LoanPaymentPlan) MakePayment(s LoanStatus) LoanStatus {
 }
 
 func (p *LoanPaymentPlan) FinalCalculations() {
-	p.CostOfCreditPercent = p.TotalPaid.Div(p.StartingPrincipal)
+	one := decimal.NewFromInt32(1)
+	oneHundred := decimal.NewFromInt32(100)
+	p.CostOfCreditPercent = p.TotalPaid.Div(p.StartingPrincipal).Sub(one).Mul(oneHundred)
 }
