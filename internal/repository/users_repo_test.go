@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"testing"
 
@@ -71,9 +70,13 @@ func TestGetUserByID(t *testing.T) {
 	ctx := context.Background()
 	queries := initializeQueries(ctx)
 	repo := NewUsersRepo(queries)
-	testEmail := "test@mail.com"
-	testID := "af38df43-3ced-4869-9930-93a0fa0cf1e0"
-	testUUID, err := uuid.Parse(testID)
+	testEmail := "unit@test.com"
+	testUser, err := CreateTestUserIfNotExists()
+	if err != nil {
+		log.Fatalf("Failed to create a test user.")
+		return
+	}
+	testUUID, err := uuid.Parse(testUser.ID.String())
 	if err != nil {
 		log.Fatalf("Failed to parse test user's UUID: %v", testUUID)
 	}
@@ -108,10 +111,8 @@ func CreateTestUserIfNotExists() (db.User, error) {
 
 	user, _ := queries.GetUserByEmail(ctx, testEmail)
 	if user.ID.Bytes == uuid.Nil || len(user.ID.Bytes) <= 0 {
-		fmt.Printf("\n\n\nDid't found an existing test user, so creating a new one: %v\n\n\n", user.ID)
 		return queries.CreateUser(ctx, insertParams)
 	}
-	fmt.Printf("\n\n\nFound an existing test user: %v\n\n\n", user.ID)
 	return user, nil
 }
 
