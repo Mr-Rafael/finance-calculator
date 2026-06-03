@@ -961,6 +961,713 @@ POST /app/loans/save
   "error": "internal server error"
 }
 ```
+## `GET /app/savings/list`
+
+List all the Savings Plans associated with a user.
+
+---
+
+### URL
+
+```http
+GET /app/savings/list
+```
+
+### Headers
+
+| Header | Required | Description |
+|---|---|---|
+| Authorization | Yes | Bearer token `Bearer [access token here]` |
+
+### Request Body
+
+No body required. The user information is extracted from the Access Token.
+
+---
+
+### Response
+
+### Success Response
+
+**Status Code:** `200 OK`
+
+```json
+{
+    "plans": [
+        {
+            "id": "a5b140fd-583c-4edb-8668-e7ee986d2a37",
+            "name": "test",
+            "startingCapital": 700000
+        },
+        {
+            "id": "479d382b-2129-4d91-a77f-9ea1f90acd5b",
+            "name": "test",
+            "startingCapital": 700000
+        }
+    ]
+}
+```
+
+### Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| plans | Array of plans data. | The list of savings plans associated with the user. |
+
+**Plan data**
+
+| Field | Type | Description |
+|---|---|---|
+| id | string | The plan's ID. UUID v4. |
+| name | string | The plan's name. |
+| startingCapital | integer | The plan's starting capital in cents. |
+
+---
+
+### Error Responses
+
+### `401 Unauthorized`
+
+```json
+{
+    "error": "error message depending on authentication error"
+}
+```
+
+### `500 Internal Server Error`
+
+```json
+{
+  "error": "internal server error"
+}
+```
+## `GET /app/loans/list`
+
+List all the loans associated with a user.
+
+---
+
+### URL
+
+```http
+GET /app/loans/list
+```
+
+### Headers
+
+| Header | Required | Description |
+|---|---|---|
+| Authorization | Yes | Bearer token `Bearer [access token here]` |
+
+### Request Body
+
+No body required. The user information is extracted from the Access Token.
+
+---
+
+### Response
+
+### Success Response
+
+**Status Code:** `200 OK`
+
+```json
+{
+    "loans": [
+        {
+            "id": "d25d1653-6ac5-4b97-b5db-b164246c4b88",
+            "name": "Test 2",
+            "loanAmount": 10000000
+        },
+        {
+            "id": "ef375465-08ad-4947-9541-e192367797f7",
+            "name": "Test 2",
+            "loanAmount": 10000000
+        }
+    ]
+}
+```
+
+### Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| plans | Array of plans data. | The list of Loan Payment Plans associated with the user. |
+
+**Plan data**
+
+| Field | Type | Description |
+|---|---|---|
+| id | string | The plan's ID. UUID v4. |
+| name | string | The plan's name. |
+| loanAmount | integer | The plan's starting principal in cents. |
+
+---
+
+### Error Responses
+
+### `401 Unauthorized`
+
+```json
+{
+    "error": "error message depending on authentication error"
+}
+```
+
+### `500 Internal Server Error`
+
+```json
+{
+  "error": "internal server error"
+}
+```
+## `GET /app/savings/{id}`
+
+Retrieve the data of the specified Savings Plan
+
+---
+
+### URL
+
+```http
+GET /app/savings/{id}
+```
+
+### Headers
+
+| Header | Required | Description |
+|---|---|---|
+| Authorization | Yes | Bearer token `Bearer [access token here]` |
+
+### Path Parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| id | string | Yes | UUID of the requested Savings Plan |
+
+### Request Body
+
+None.
+
+---
+
+### Response
+
+### Success Response
+
+**Status Code:** `200 OK`
+
+```json
+{
+    "id": "a5b140fd-583c-4edb-8668-e7ee986d2a37",
+    "name": "test",
+    "originalData": {
+        "startingCapital": 700000,
+        "yearlyInterestRate": "4.75",
+        "interestRateType": "APY",
+        "monthlyContribution": 15000,
+        "durationYears": 1,
+        "taxRate": "0",
+        "yearlyInflationRate": "0",
+        "startDate": "2026-01-31T18:00:00-06:00"
+    },
+    "calculatedData": {
+        "monthlyInterestRate": "0.3874684992",
+        "totalInterestEarnings": 37136,
+        "totalDeposited": 0,
+        "rateOfReturn": "4.22",
+        "inflationAdjustedROR": "4.22"
+    },
+    "plan": [
+        {
+            "date": "2026-02-28T18:00:00-06:00",
+            "interest": 2712,
+            "tax": 0,
+            "contribution": 15000,
+            "increase": 17712,
+            "capital": 717712
+        }
+    ]
+}
+```
+
+### Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| id | string | Resource ID |
+| originalData | Object | The original plan data, received when it was created. Consult the `/app/savings/calculate` documentation for more information on the fields. |
+| calculatedData | Object | The data calculated from the initial data. Consult the `/app/savings/calculate` documentation for more information on the fields. |
+| plan | Array of Objects | The monthly statuses of the savings plan. Consult the `/app/savings/calculate` documentation for more information on the fields. |
+
+---
+
+### Error Responses
+
+### `401 Unauthorized`
+
+Returned either when the resource is not found, or the user was unauthorized.
+
+### `500 Internal Server Error`
+
+```json
+{
+  "error": "internal server error"
+}
+```
+## `GET /app/loans/{id}`
+
+Retrieve the data of the specified Loan Payment Plan.
+
+---
+
+### URL
+
+```http
+GET /app/loans/{id}
+```
+
+### Headers
+
+| Header | Required | Description |
+|---|---|---|
+| Authorization | Yes | Bearer token `Bearer [access token here]` |
+
+### Path Parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| id | string | Yes | UUID of the requested Loan Payment Plan. |
+
+### Request Body
+
+None.
+
+---
+
+### Response
+
+### Success Response
+
+**Status Code:** `200 OK`
+
+```json
+{
+    "id": "d25d1653-6ac5-4b97-b5db-b164246c4b88",
+    "name": "Test 2",
+    "originalData": {
+        "startingPrincipal": 10000000,
+        "yearlyInterestRate": "5",
+        "monthlyPayment": 900076,
+        "escrowPayment": 10000,
+        "startDate": "1969-12-31T18:00:00-06:00"
+    },
+    "calculatedData": {
+        "monthlyInterestRate": "0.4166666667",
+        "durationMonths": 12,
+        "totalExpenditure": 383416,
+        "totalPaid": 10383416,
+        "costOfCredit": "1.0383416398261762"
+    },
+    "paymentPlan": [
+        {
+            "date": "1970-01-31T18:00:00-06:00",
+            "payment": 900076,
+            "interest": 41667,
+            "otherPayments": 10000,
+            "paydown": 848409,
+            "principal": 9151591
+        }
+    ]
+}
+```
+
+### Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| id | string | Resource ID |
+| originalData | Object | The original plan data, received when it was created. Consult the `/app/loans/calculate` documentation for more information on the fields. |
+| calculatedData | Object | The data calculated from the initial data. Consult the `/app/loans/calculate` documentation for more information on the fields. |
+| plan | Array of Objects | The monthly statuses of the savings plan. Consult the `/app/loans/calculate` documentation for more information on the fields. |
+
+---
+
+### Error Responses
+
+### `401 Unauthorized`
+
+Returned either when the resource is not found, or the user was unauthorized.
+
+### `500 Internal Server Error`
+
+```json
+{
+  "error": "internal server error"
+}
+```
+## `PATCH /app/savings/{id}`
+
+Update the initial data of a Savings Plan, recalculate and save changes to database.
+
+---
+
+### URL
+
+```http
+PATCH /app/savings/{id}
+```
+
+### Headers
+
+| Header | Required | Description |
+|---|---|---|
+| Authorization | Yes | Bearer token `Bearer [access token here]` |
+| Content-Type | Yes |  `application/json` |
+
+### Path Parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| id | string | Yes | UUID of the requested Savings Plan |
+
+### Request Body
+
+```json
+{
+  "name": "Test",
+  "startingCapital": 700000,
+  "yearlyInterestRate": "4.75",
+  "interestRateType": "APR",
+  "monthlyContribution": 15000,
+  "durationYears": 1,
+  "taxRate": "5",
+  "yearlyInflationRate": "6",
+  "startDate": "1970-01-01"
+}
+```
+
+### Request Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| Name | string | No | Updated name for the savings plan. |
+| startingCapital | integer | No | Updated starting capital for the savings plan, in cents. |
+| yearlyInterestRate | string | No | Updated yearly interest rate for the savings plan, as a percent. Example: "5" means 5%. |
+| startDate | integer | No | Updated start date for the savings plan. YYYY-MM-DD format. |
+| durationYears | integer | No | Updated duration for the savings plan, in years. |
+| interestRateType | string | No | Updated interest rate type for the savings plan. "APR" or "APY". |
+| monthlyContribution | integer | No | Updated monthly contribution, in cents. |
+| taxRate | string | No | Updated tax rate, as a percent. Example: "5" means 5%. |
+| yearlyInflationRate | string | No | Updated yearly inflation rate, as a percent. Example: "5" means 5%.  |
+
+---
+
+### Response
+
+### Success Response
+
+**Status Code:** `200 OK`
+
+```json
+{
+    "id": "bea4b58a-86a0-4eee-8380-37929b599216",
+    "name": "test",
+    "startingCapital": 700000,
+    "yearlyInterestRate": "4.2",
+    "interestRateType": "APY",
+    "monthlyContribution": 15000,
+    "durationYears": 1,
+    "taxRate": "0",
+    "yearlyInflationRate": "0",
+    "startDate": "2026-01-23T18:00:00-06:00",
+    "monthlyInterestRate": "0.3434379290046821080713036287486481524",
+    "totalDeposited": 880000,
+    "totalEarnings": 32839,
+    "rateOfReturn": "3.73",
+    "inflationAdjustedROR": "3.73"
+}
+```
+### Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| id | string | The ID of the updated Savings Plan. UUID v4. |
+| name | string | The name of the updated savins plan. |
+| startingCapital | integer | Current starting capital of the savings plan. |
+| yearlyInterestRate | string | Current yearly interest rate of the savings plan. |
+| interestRateType | string | Current interest rate type of the savings plan. |
+| monthlyContribution | integer | Current monthly contribution of the savings plan. |
+| durationYears | integer | Current duration of the savings plan. |
+| taxRate | string | Current tax rate of the savings plan. |
+| yearlyInflationRate | string | Current yearly inflation rate of the savings plan. |
+| startDate | string | Current start date of the savings plan.. ISO 8601 timestamp. |
+| monthlyInterestRate | string | Recalculated monthly interest rate. |
+| totalDeposited | integer | Recalculated total deposited. |
+| totalEarnings | string | Recalculated total earnings. |
+| rateOfReturn | string | Recalculated rate of return. |
+| inflationAdjustedROR | string | Recalculated inflation adjusted rate of return. |
+
+---
+
+### Error Responses
+
+### `400 Bad Request`
+
+```json
+{
+  "error": "error message depending on the invalid or missing field"
+}
+```
+
+### `401 Unauthorized`
+
+```json
+{
+    "error": "error message dependimg on authentication error"
+}
+```
+
+### `500 Internal Server Error`
+
+```json
+{
+  "error": "internal server error"
+}
+```
+## `PATCH /app/loans/{id}`
+
+Update the initial data of a Loan Payment Plan, recalculate and save changes to database.
+
+---
+
+### URL
+
+```http
+PATCH /app/loans/{id}
+```
+
+### Headers
+
+| Header | Required | Description |
+|---|---|---|
+| Authorization | Yes | Bearer token `Bearer [access token here]` |
+| Content-Type | Yes |  `application/json` |
+
+### Path Parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| id | string | Yes | UUID of the requested Loan Payment Plan |
+
+### Request Body
+
+```json
+{
+  "name": "Test",
+  "startingPrincipal": 10000000,
+  "yearlyInterestRate": "5",
+  "monthlyPayment": 1500000,
+  "escrowPayment": 10000,
+  "startDate": "1970-01-01"
+}
+```
+
+### Request Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| Name | string | No | Updated name for the savings plan. |
+| startingPrincipal | integer | No | Updated starting principal for the loan payment plan, in cents. |
+| yearlyInterestRate | string | No | Updated yearly interest rate for the loan payment plan, as a percent. Example: "5" means 5%. |
+| monthlyPayment | integer | No | Updated monthly payment for the loan payment plan, in cents. |
+| escrowPayment | integer | No | Updated amount of other payments (not interest or principal) for the loan payment plan. |
+| startDate | string | No | Updated start date for the loan payment plan. YYYY-MM-DD format. |
+
+---
+
+### Response
+
+### Success Response
+
+**Status Code:** `200 OK`
+
+```json
+{
+    "id": "ef375465-08ad-4947-9541-e192367797f7",
+    "name": "Test 2",
+    "startingPrincipal": 10000000,
+    "yearlyInterestRate": "4",
+    "monthlyPayment": 900076,
+    "escrowPayment": 10000,
+    "startDate": "1969-12-23T18:00:00-06:00",
+    "durationMonths": 12,
+    "totalExpenditure": 329407,
+    "totalPaid": 10329407,
+    "costOfCreditPercent": "3.2940656243549"
+}
+
+```
+
+### Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| id | string | The ID of the updated Savings Plan. UUID v4. |
+| name | string | The name of the updated savins plan. |
+| startingPrincipal | integer | Current starting starting principal of the loan payment plan. |
+| yearlyInterestRate | string | Current yearly interest rate of the loan payment plan. |
+| monthlyPayment | integer | Current monthly payment rate of the loan payment plan. |
+| escrowPayment | integer | Current amount of other payments of the loan payment plan. |
+| startDate | string | Current start date of the loan payment plan. YYYY-MM-DD format. |
+| durationMonths | integer | Recalculated duration of the loan payment plan. |
+| totalExpenditure | integer | Recalculated total expenditure of the loan payment plan. |
+| totalPaid | integer | Recalculated total paid of the loan payment plan. |
+| costOfCreditPercent | string | Recalculated cost of credit of the loan payment plan. |
+
+---
+
+### Error Responses
+
+### `400 Bad Request`
+
+```json
+{
+  "error": "error message depending on the invalid or missing field"
+}
+```
+
+### `401 Unauthorized`
+
+```json
+{
+    "error": "error message depending on authentication error"
+}
+```
+
+### `500 Internal Server Error`
+
+```json
+{
+  "error": "internal server error"
+}
+```
+## `DELETE /app/savings/{id}`
+
+Delete the specified Savings Plan.
+
+---
+
+### URL
+
+```http
+DELETE /app/savings/{id}
+```
+
+### Headers
+
+| Header | Required | Description |
+|---|---|---|
+| Authorization | Yes | Bearer token `Bearer [access token here]` |
+| Content-Type | Yes |  `application/json` |
+
+### Path Parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| id | string | Yes | UUID of the Savings Plan to be deleted. |
+
+### Request Body
+
+None.
+
+### Response
+
+### Success Response
+
+**Status Code:** `204 No Content`
+
+```json
+No body.
+```
+
+---
+
+### Error Responses
+
+### `401 Unauthorized`
+
+```json
+{
+  "error": "resource not found"
+}
+```
+
+### `500 Internal Server Error`
+
+```json
+{
+  "error": "internal server error"
+}
+```
+## `DELETE /app/loans/{id}`
+
+Delete the specified Loan Payment Plan.
+
+---
+
+### URL
+
+```http
+DELETE /app/loans/{id}
+```
+
+### Headers
+
+| Header | Required | Description |
+|---|---|---|
+| Authorization | Yes | Bearer token `Bearer [access token here]` |
+| Content-Type | Yes |  `application/json` |
+
+### Path Parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| id | string | Yes | UUID of the Loan Payment Plan to be deleted. |
+
+### Request Body
+
+None.
+
+### Response
+
+### Success Response
+
+**Status Code:** `204 No Content`
+
+```json
+No body.
+```
+
+---
+
+### Error Responses
+
+### `401 Unauthorized`
+
+```json
+{
+  "error": "resource not found"
+}
+```
+
+### `500 Internal Server Error`
+
+```json
+{
+  "error": "internal server error"
+}
+```
 
 ## Collaborators</h2>
 <table>

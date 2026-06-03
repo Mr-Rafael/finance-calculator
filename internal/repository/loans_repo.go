@@ -130,7 +130,11 @@ func (r *LoansRepo) UpdateLoan(ctx context.Context, plan domain.LoanPaymentPlan)
 }
 
 func (r *LoansRepo) DeleteLoan(ctx context.Context, loanID uuid.UUID, userID uuid.UUID) error {
-	return r.queries.DeleteLoan(ctx, db.DeleteLoanParams(toLoanGetParams(loanID, userID)))
+	rows, err := r.queries.DeleteLoan(ctx, db.DeleteLoanParams(toLoanGetParams(loanID, userID)))
+	if err != nil || rows <= 0 {
+		return fmt.Errorf("Not found.")
+	}
+	return nil
 }
 
 func toLoanInsertQueryParams(plan domain.LoanPaymentPlan) (db.CreateLoanParams, error) {

@@ -306,7 +306,7 @@ func TestDeleteLoan(t *testing.T) {
 		ID:     loanInfo.ID,
 		UserID: loanInfo.UserID,
 	}
-	err = repo.queries.DeleteLoan(ctx, deleteParams)
+	_, err = repo.queries.DeleteLoan(ctx, deleteParams)
 	if err != nil {
 		log.Fatalf("Error deleting loan.")
 	}

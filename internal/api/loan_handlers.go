@@ -178,7 +178,7 @@ func (handler *LoanHandler) HandleDeleteLoan(writer http.ResponseWriter, request
 	}
 	err = handler.loanService.DeleteLoan(context.Background(), planUUID, userUUID)
 	if err != nil {
-		respondWithErrorCode(writer, fmt.Sprintf("failed attempt to delete loan %v by user %v", planID, userID), http.StatusUnauthorized)
+		respondWithErrorCode(writer, fmt.Sprintf("failed attempt to delete loan %v by user %v", planID, userID), http.StatusNotFound)
 	}
 	respondWithCode(writer, http.StatusNoContent)
 }

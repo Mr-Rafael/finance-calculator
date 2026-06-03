@@ -255,7 +255,7 @@ func TestSaveLoanPaymentPlan(t *testing.T) {
 		DurationMonths:   12,
 		TotalPaid:        10383416,
 		TotalExpenditure: 383416,
-		CostOfCredit:     "1.0383416398261762",
+		CostOfCredit:     "3.83416398261762",
 	}
 
 	got, err := service.SaveLoanPaymentPlan(ctx, input)

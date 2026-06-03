@@ -324,7 +324,7 @@ func TestDeleteSavings(t *testing.T) {
 		ID:     loanInfo.ID,
 		UserID: loanInfo.UserID,
 	}
-	err = repo.queries.DeleteSavings(ctx, deleteParams)
+	_, err = repo.queries.DeleteSavings(ctx, deleteParams)
 	if err != nil {
 		log.Fatalf("Error deleting savings plan.")
 	}

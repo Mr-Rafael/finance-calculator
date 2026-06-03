@@ -186,7 +186,7 @@ func (handler *SavingsHandler) HandleDeleteSavings(writer http.ResponseWriter, r
 	}
 	err = handler.savingsService.DeleteSavingsPlan(context.Background(), planUUID, userUUID)
 	if err != nil {
-		respondWithErrorCode(writer, fmt.Sprintf("failed attempt to delete savings plan %v by user %v", planID, userID), http.StatusUnauthorized)
+		respondWithErrorCode(writer, fmt.Sprintf("failed attempt to delete savings plan %v by user %v", planID, userID), http.StatusNotFound)
 		return
 	}
 	respondWithCode(writer, http.StatusNoContent)

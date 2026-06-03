@@ -49,6 +49,6 @@ SET name = $3,
 WHERE id = $1 AND user_id = $2
 RETURNING *;
 
--- name: DeleteLoan :exec
+-- name: DeleteLoan :execrows
 DELETE FROM loans
 WHERE id = $1 AND user_id = $2;

@@ -133,7 +133,11 @@ func (r *SavingsRepo) UpdateSavings(ctx context.Context, plan domain.SavingsPlan
 }
 
 func (r *SavingsRepo) DeleteSavingsPlan(ctx context.Context, planID uuid.UUID, userID uuid.UUID) error {
-	return r.queries.DeleteSavings(ctx, db.DeleteSavingsParams(toSavingsGetParams(planID, userID)))
+	rows, err := r.queries.DeleteSavings(ctx, db.DeleteSavingsParams(toSavingsGetParams(planID, userID)))
+	if err != nil || rows <= 0 {
+		return fmt.Errorf("Not found.")
+	}
+	return nil
 }
 
 func toSavingsInsertQueryParams(plan domain.SavingsPlan) (db.CreateSavingsParams, error) {

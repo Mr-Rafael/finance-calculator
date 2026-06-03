@@ -91,7 +91,7 @@ func (q *Queries) CreateSavings(ctx context.Context, arg CreateSavingsParams) (S
 	return i, err
 }
 
-const deleteSavings = `-- name: DeleteSavings :exec
+const deleteSavings = `-- name: DeleteSavings :execrows
 DELETE FROM savings
 WHERE id = $1 AND user_id = $2
 `
@@ -101,9 +101,12 @@ type DeleteSavingsParams struct {
 	UserID pgtype.UUID
 }
 
-func (q *Queries) DeleteSavings(ctx context.Context, arg DeleteSavingsParams) error {
-	_, err := q.db.Exec(ctx, deleteSavings, arg.ID, arg.UserID)
-	return err
+func (q *Queries) DeleteSavings(ctx context.Context, arg DeleteSavingsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteSavings, arg.ID, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const getSavings = `-- name: GetSavings :one

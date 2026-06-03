@@ -59,6 +59,6 @@ WHERE id = $1 AND user_id = $2
 RETURNING *;
     
 
--- name: DeleteSavings :exec
+-- name: DeleteSavings :execrows
 DELETE FROM savings
 WHERE id = $1 AND user_id = $2;

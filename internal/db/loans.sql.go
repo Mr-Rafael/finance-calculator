@@ -79,7 +79,7 @@ func (q *Queries) CreateLoan(ctx context.Context, arg CreateLoanParams) (Loan, e
 	return i, err
 }
 
-const deleteLoan = `-- name: DeleteLoan :exec
+const deleteLoan = `-- name: DeleteLoan :execrows
 DELETE FROM loans
 WHERE id = $1 AND user_id = $2
 `
@@ -89,9 +89,12 @@ type DeleteLoanParams struct {
 	UserID pgtype.UUID
 }
 
-func (q *Queries) DeleteLoan(ctx context.Context, arg DeleteLoanParams) error {
-	_, err := q.db.Exec(ctx, deleteLoan, arg.ID, arg.UserID)
-	return err
+func (q *Queries) DeleteLoan(ctx context.Context, arg DeleteLoanParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteLoan, arg.ID, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const getLoan = `-- name: GetLoan :one
