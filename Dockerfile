@@ -11,7 +11,5 @@ RUN apk add --no-cache ca-certificates tzdata
 COPY --from=builder /app/server /app/server
 COPY --from=builder /go/bin/goose /usr/local/bin/goose
 COPY .env.example /app/.env.example
-COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
 EXPOSE 8080
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "-c", "if [ ! -f /app/.env ]; then cp /app/.env.example /app/.env; fi && exec /app/server"]
