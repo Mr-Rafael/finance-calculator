@@ -1,4 +1,4 @@
-module github.com/Mr-Rafael/finance-calculator
+module github.com/Mr-Rafael/bucktracker-api
 
 go 1.25.0
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Mr-Rafael/finance-calculator/internal"
+	"github.com/Mr-Rafael/bucktracker-api/internal"
 )
 
 func main() {

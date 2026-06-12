@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Mr-Rafael/finance-calculator/internal/auth"
-	"github.com/Mr-Rafael/finance-calculator/internal/db"
+	"github.com/Mr-Rafael/bucktracker-api/internal/auth"
+	"github.com/Mr-Rafael/bucktracker-api/internal/db"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"

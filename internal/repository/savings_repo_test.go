@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Mr-Rafael/finance-calculator/internal/db"
-	"github.com/Mr-Rafael/finance-calculator/internal/domain"
-	"github.com/Mr-Rafael/finance-calculator/internal/dto"
+	"github.com/Mr-Rafael/bucktracker-api/internal/db"
+	"github.com/Mr-Rafael/bucktracker-api/internal/domain"
+	"github.com/Mr-Rafael/bucktracker-api/internal/dto"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/shopspring/decimal"

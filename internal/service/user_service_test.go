@@ -6,7 +6,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/Mr-Rafael/finance-calculator/internal/db"
+	"github.com/Mr-Rafael/bucktracker-api/internal/db"
 )
 
 func TestRegisterUserAlreadyExists(t *testing.T) {

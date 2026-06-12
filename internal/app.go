@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Mr-Rafael/finance-calculator/internal/api"
-	"github.com/Mr-Rafael/finance-calculator/internal/db"
-	"github.com/Mr-Rafael/finance-calculator/internal/repository"
-	"github.com/Mr-Rafael/finance-calculator/internal/service"
+	"github.com/Mr-Rafael/bucktracker-api/internal/api"
+	"github.com/Mr-Rafael/bucktracker-api/internal/db"
+	"github.com/Mr-Rafael/bucktracker-api/internal/repository"
+	"github.com/Mr-Rafael/bucktracker-api/internal/service"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )

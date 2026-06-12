@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Mr-Rafael/finance-calculator/internal/db"
-	"github.com/Mr-Rafael/finance-calculator/internal/service"
+	"github.com/Mr-Rafael/bucktracker-api/internal/db"
+	"github.com/Mr-Rafael/bucktracker-api/internal/service"
 	"github.com/stretchr/testify/require"
 )
 

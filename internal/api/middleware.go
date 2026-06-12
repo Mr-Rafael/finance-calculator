@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Mr-Rafael/finance-calculator/internal/service"
+	"github.com/Mr-Rafael/bucktracker-api/internal/service"
 )
 
 type contextKey string

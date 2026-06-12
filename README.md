@@ -1,4 +1,4 @@
-# Finance Calculator
+# BuckTracker
 
 **A REST API with useful Savings and Loans calculations.**
 
@@ -34,8 +34,8 @@ To run the project, make sure you have [Docker](https://www.docker.com/products/
 Clone the repository:
 
 ```bash
-git clone git@github.com:Mr-Rafael/finance-calculator.git
-cd finance-calculator
+git clone git@github.com:Mr-Rafael/bucktracker-api.git
+cd bucktracker-api
 ```
 
 ## Running the Project
@@ -51,7 +51,7 @@ docker compose up --build -d
 The previous command will automatically:
 
 - Start a container running PostgreSQL.
-- Create the volume `finance-calculator_postgres_data` and attach it to the container.
+- Create the volume `bucktracker-api_postgres_data` and attach it to the container.
 - Run the database migrations located in `/internal/db/migrations` using Goose Migrations.
 - Start a container running the Finance Calculator REST API server.
 
@@ -1580,8 +1580,8 @@ No body.
 ### Clone the repo
 
 ```bash
-git clone https://github.com/Mr-Rafael/finance-calculator.git
-cd finance-calculator
+git clone https://github.com/Mr-Rafael/bucktracker-api.git
+cd bucktracker-api
 ```
 
 ### Run the unit test suite

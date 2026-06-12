@@ -1,8 +1,8 @@
 package mapper
 
 import (
-	"github.com/Mr-Rafael/finance-calculator/internal/dto"
-	"github.com/Mr-Rafael/finance-calculator/internal/service"
+	"github.com/Mr-Rafael/bucktracker-api/internal/dto"
+	"github.com/Mr-Rafael/bucktracker-api/internal/service"
 )
 
 func ToLoginInput(reqParams dto.UserLoginRequestParams) service.LoginInput {

@@ -3,8 +3,8 @@ package mapper
 import (
 	"time"
 
-	"github.com/Mr-Rafael/finance-calculator/internal/dto"
-	"github.com/Mr-Rafael/finance-calculator/internal/service"
+	"github.com/Mr-Rafael/bucktracker-api/internal/dto"
+	"github.com/Mr-Rafael/bucktracker-api/internal/service"
 )
 
 func ToCreateUserInput(reqParams dto.UserCreateRequestParams) service.RegisterUserInput {

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Mr-Rafael/finance-calculator/internal/db"
-	"github.com/Mr-Rafael/finance-calculator/internal/domain"
+	"github.com/Mr-Rafael/bucktracker-api/internal/db"
+	"github.com/Mr-Rafael/bucktracker-api/internal/domain"
 	"github.com/google/uuid"
 )
 

@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Mr-Rafael/finance-calculator/internal/dto"
-	"github.com/Mr-Rafael/finance-calculator/internal/mapper"
-	"github.com/Mr-Rafael/finance-calculator/internal/service"
+	"github.com/Mr-Rafael/bucktracker-api/internal/dto"
+	"github.com/Mr-Rafael/bucktracker-api/internal/mapper"
+	"github.com/Mr-Rafael/bucktracker-api/internal/service"
 	"github.com/google/uuid"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Mr-Rafael/finance-calculator/internal/db"
+	"github.com/Mr-Rafael/bucktracker-api/internal/db"
 	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )

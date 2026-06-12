@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/Mr-Rafael/finance-calculator/internal/db"
+	"github.com/Mr-Rafael/bucktracker-api/internal/db"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 

@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Mr-Rafael/finance-calculator/internal/db"
-	"github.com/Mr-Rafael/finance-calculator/internal/service"
+	"github.com/Mr-Rafael/bucktracker-api/internal/db"
+	"github.com/Mr-Rafael/bucktracker-api/internal/service"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/require"
